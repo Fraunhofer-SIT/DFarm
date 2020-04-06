@@ -29,3 +29,8 @@ file defines the role of the instance (main controller or subcontroller).
 
 The DFarm source code will be published here soon. We're currently working on the license, but
 will make sure that DFarm is available for researchers to build upon.
+
+## Is there an iOS variant of DFarm?
+
+Not at the moment. However, we are confident that the general concepts of DFarm can be ported
+to iOS devices as well, with minor modifications. Feel free to contribute such a ported version.
