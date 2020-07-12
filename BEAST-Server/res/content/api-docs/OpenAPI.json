@@ -1,0 +1,3141 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "D-FARM API",
+    "description" : "D-FARM API",
+    "contact" : {
+      "name" : "CodeInspect Support Team",
+      "url" : "https://codeinspect.de",
+      "email" : "helpdesk@codeinspect.de"
+    },
+    "version" : "0.2"
+  },
+  "security" : [ {
+    "APIKey" : [ ]
+  } ],
+  "tags" : [ {
+    "name" : "Apps",
+    "description" : "Manages the applications"
+  }, {
+    "name" : "Contacts",
+    "description" : "Manages the contacts"
+  }, {
+    "name" : "Device Environments",
+    "description" : "Device Environments"
+  }, {
+    "name" : "Devices",
+    "description" : "Information about devices"
+  }, {
+    "name" : "FileSystem",
+    "description" : "Shows information about the filesystem"
+  }, {
+    "name" : "Input",
+    "description" : "Provides interfaces to input controls"
+  }, {
+    "name" : "Port forwardings",
+    "description" : "Allows port forwardings"
+  } ],
+  "paths" : {
+    "/api/devices/{devid}/apps/installApplication" : {
+      "post" : {
+        "tags" : [ "Apps" ],
+        "summary" : "Installs an app",
+        "description" : "Uploads a file and installs it as an app",
+        "operationId" : "installApplication",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "App to install",
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UploadedFile"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbstractApp"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/apps/{appid}" : {
+      "get" : {
+        "tags" : [ "Apps" ],
+        "summary" : "Shows information about a specific app",
+        "description" : "Shows information about a specific app",
+        "operationId" : "getInstalledAppInfo",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "appid",
+          "in" : "path",
+          "description" : "The id of app",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbstractApp"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Apps" ],
+        "summary" : "Uninstalls an app",
+        "description" : "Uninstalls an app",
+        "operationId" : "uninstallApplication",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "appid",
+          "in" : "path",
+          "description" : "The id of app",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbstractApp"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/apps" : {
+      "get" : {
+        "tags" : [ "Apps" ],
+        "summary" : "Lists installed apps",
+        "description" : "Lists installed apps",
+        "operationId" : "getInstalledApps",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AbstractApp"
+                  }
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/contacts/{id}" : {
+      "post" : {
+        "tags" : [ "Contacts" ],
+        "summary" : "Deletes a contact",
+        "description" : "Deletes a contact",
+        "operationId" : "uninstallApplication_1",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "The id of the contact",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/contacts" : {
+      "get" : {
+        "tags" : [ "Contacts" ],
+        "summary" : "Lists contacts",
+        "description" : "Lists contacts",
+        "operationId" : "getContacts",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Contact"
+                  }
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Contacts" ],
+        "summary" : "Adds or updates a contact",
+        "description" : "Adds or uploads a contact",
+        "operationId" : "addContact",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Contact"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbstractApp"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/environments/{saveName}" : {
+      "put" : {
+        "tags" : [ "Device Environments" ],
+        "summary" : "Saves the current state as the new saved state",
+        "description" : "Saves the state",
+        "operationId" : "saveState",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "saveName",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbstractApp"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "tags" : [ "Device Environments" ],
+        "summary" : "Deletes a state",
+        "description" : "Deletes a state",
+        "operationId" : "deleteState",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "saveName",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbstractApp"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/environments/{saveName}/load" : {
+      "get" : {
+        "tags" : [ "Device Environments" ],
+        "summary" : "Loads the saved state",
+        "description" : "Loads the saved state",
+        "operationId" : "loadState",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "saveName",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbstractApp"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/environments" : {
+      "get" : {
+        "tags" : [ "Device Environments" ],
+        "summary" : "Returns a list of saved states",
+        "description" : "List of saved environment states",
+        "operationId" : "listStates",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SavedEnvironment"
+                  }
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}" : {
+      "get" : {
+        "tags" : [ "Devices" ],
+        "summary" : "Gets device information",
+        "description" : "Gets device information",
+        "operationId" : "getDeviceInformation",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The device id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceInformation"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "590" : {
+            "description" : "No device available",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices" : {
+      "get" : {
+        "tags" : [ "Devices" ],
+        "summary" : "Returns a list of devices",
+        "description" : "Returns devices",
+        "operationId" : "getDevicesUnconditionally",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DeviceInformation"
+                  }
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "Devices" ],
+        "summary" : "Returns a list of devices",
+        "description" : "Returns devices",
+        "operationId" : "getDevices",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeviceRequirements"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DeviceInformation"
+                  }
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/releaseAll" : {
+      "get" : {
+        "tags" : [ "Devices" ],
+        "summary" : "Release all devices reserved by the API key",
+        "description" : "Release all devices reserved by the API key",
+        "operationId" : "releaseAllDevices",
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/ping" : {
+      "get" : {
+        "tags" : [ "Devices" ],
+        "summary" : "Pings the device",
+        "description" : "Pings the device, signalling that it's still needed by the client.",
+        "operationId" : "ping",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceInformation"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/screenshot" : {
+      "get" : {
+        "tags" : [ "Devices" ],
+        "summary" : "Downloads a screenshot",
+        "description" : "Downloads a screenshot",
+        "operationId" : "getScreenshot",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "image/png" : {
+                "schema" : {
+                  "type" : "string",
+                  "description" : "string",
+                  "format" : "binary"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "image/png" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "image/png" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "image/png" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/release" : {
+      "get" : {
+        "tags" : [ "Devices" ],
+        "summary" : "Releases a device",
+        "description" : "Releases a device which was reserved previously by the same API key.",
+        "operationId" : "releaseDevice",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The device id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/reserve" : {
+      "post" : {
+        "tags" : [ "Devices" ],
+        "summary" : "Reserves a device",
+        "description" : "Reserves a device and returns it (if successful)",
+        "operationId" : "reserveDevice",
+        "requestBody" : {
+          "description" : "Device requirements",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeviceRequirements"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceInformation"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "590" : {
+            "description" : "No device available",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/filesystem" : {
+      "delete" : {
+        "tags" : [ "FileSystem" ],
+        "summary" : "Deletes a file or folder",
+        "description" : "Delete a file or folder",
+        "operationId" : "delete",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "path",
+          "in" : "query",
+          "description" : "Path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "/"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "File not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/filesystem/list" : {
+      "get" : {
+        "tags" : [ "FileSystem" ],
+        "summary" : "Lists files",
+        "description" : "List files",
+        "operationId" : "listFiles",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "path",
+          "in" : "query",
+          "description" : "Path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "/"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/FileOnDevice"
+                  }
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "File not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not a directory",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/filesystem/CreateDirectory" : {
+      "put" : {
+        "tags" : [ "FileSystem" ],
+        "summary" : "Creates a directory",
+        "description" : "Creates a directory",
+        "operationId" : "mkdir",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "path",
+          "in" : "query",
+          "description" : "Path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "/"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "File not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/filesystem/info" : {
+      "get" : {
+        "tags" : [ "FileSystem" ],
+        "summary" : "Gets information about a file",
+        "description" : "Gets information about a file",
+        "operationId" : "getInfo",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "path",
+          "in" : "query",
+          "description" : "Path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "/"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/FileOnDevice"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "File not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/filesystem/info/md5" : {
+      "get" : {
+        "tags" : [ "FileSystem" ],
+        "summary" : "Gets a md5 hashsum of a file in hex",
+        "description" : "A md5 hashsum",
+        "operationId" : "getMD5",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "path",
+          "in" : "query",
+          "description" : "Path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "/"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "File not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/filesystem/content" : {
+      "get" : {
+        "tags" : [ "FileSystem" ],
+        "summary" : "Downloads a file",
+        "description" : "Downloads a file",
+        "operationId" : "download",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "path",
+          "in" : "query",
+          "description" : "The path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "type" : "string",
+                  "description" : "The file",
+                  "format" : "binary"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "tags" : [ "FileSystem" ],
+        "summary" : "Uploads a file",
+        "description" : "Uploads a file",
+        "operationId" : "upload",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "path",
+          "in" : "query",
+          "description" : "Path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "File to upload",
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UploadedFile"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/input/android/broadcast" : {
+      "post" : {
+        "tags" : [ "Input" ],
+        "summary" : "Sends an intent to the system to send a message to broadcast receivers",
+        "description" : "Sends an intent to the system to send a message to broadcast receivers. Android only",
+        "operationId" : "broadcast",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "receiverPermission",
+          "in" : "path",
+          "description" : "The permission a receiver needs to have",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "The intent ot send",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Intent"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not an android device",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "510" : {
+            "description" : "No device available",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceReservationFailedException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/input/android/startForegroundService" : {
+      "post" : {
+        "tags" : [ "Input" ],
+        "summary" : "Sends an intent to the system to start a service in foreground",
+        "description" : "Sends an intent to the system to start a service in foreground. Android only",
+        "operationId" : "startForegroundService",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "The intent ot send",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Intent"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not an android device",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "510" : {
+            "description" : "No device available",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceReservationFailedException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/input/swipe" : {
+      "get" : {
+        "tags" : [ "Input" ],
+        "summary" : "Swipes on screen",
+        "description" : "Swipes on screen",
+        "operationId" : "swipe",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "x1",
+          "in" : "query",
+          "description" : "The first x coordinate",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "y1",
+          "in" : "query",
+          "description" : "The first y coordinate",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "x2",
+          "in" : "query",
+          "description" : "The second x coordinate",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "y2",
+          "in" : "query",
+          "description" : "The second y coordinate",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "durationMs",
+          "in" : "query",
+          "description" : "The duration in ms",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "example" : 10
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Device not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceNotFoundException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/input/typeText" : {
+      "post" : {
+        "tags" : [ "Input" ],
+        "summary" : "Inputs text",
+        "description" : "Inputs text",
+        "operationId" : "typeText",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "The text",
+          "content" : {
+            "*/*" : {
+              "schema" : {
+                "type" : "string"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AbstractApp"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Device not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceNotFoundException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/input/tap" : {
+      "get" : {
+        "tags" : [ "Input" ],
+        "summary" : "Taps on screen",
+        "description" : "Taps on screen",
+        "operationId" : "tap",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "x",
+          "in" : "query",
+          "description" : "The x coordinate",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "y",
+          "in" : "query",
+          "description" : "The y coordinate",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Device not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceNotFoundException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/input/android/startService" : {
+      "post" : {
+        "tags" : [ "Input" ],
+        "summary" : "Sends an intent to the system to start a service",
+        "description" : "Sends an intent to the system to start a service. Android only",
+        "operationId" : "startService",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "The intent ot send",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Intent"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not an android device",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "510" : {
+            "description" : "No device available",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceReservationFailedException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/input/android/startActivity" : {
+      "post" : {
+        "tags" : [ "Input" ],
+        "summary" : "Sends an intent to the system to start an activity",
+        "description" : "Sends an intent to the system to start an activity. Android only",
+        "operationId" : "startActivity",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "forceStopBefore",
+          "in" : "path",
+          "description" : "Whether to force stop the application before",
+          "required" : true,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "example" : false
+        }, {
+          "name" : "waitForDebugger",
+          "in" : "path",
+          "description" : "Whether to wait for a debugger",
+          "required" : true,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "example" : false
+        } ],
+        "requestBody" : {
+          "description" : "The intent ot send",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Intent"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not an android device",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "510" : {
+            "description" : "No device available",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceReservationFailedException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/input/android/stopService" : {
+      "post" : {
+        "tags" : [ "Input" ],
+        "summary" : "Sends an intent to the system to stop a service",
+        "description" : "Sends an intent to the system to stop a service. Android only",
+        "operationId" : "stopService",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "requestBody" : {
+          "description" : "The intent ot send",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Intent"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not an android device",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "510" : {
+            "description" : "No device available",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceReservationFailedException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/input/keyevent" : {
+      "get" : {
+        "tags" : [ "Input" ],
+        "summary" : "Key event",
+        "description" : "A key event",
+        "operationId" : "keyTyped",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "key",
+          "in" : "query",
+          "description" : "The key",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "KEYCODE_SOFT_RIGHT", "KEYCODE_HOME", "KEYCODE_BACK", "KEYCODE_CALL", "KEYCODE_ENDCALL", "KEYCODE_0", "KEYCODE_1", "KEYCODE_2", "KEYCODE_3", "KEYCODE_4", "KEYCODE_5", "KEYCODE_6", "KEYCODE_7", "KEYCODE_8", "KEYCODE_9", "KEYCODE_STAR", "KEYCODE_POUND", "KEYCODE_DPAD_UP", "KEYCODE_DPAD_DOWN", "KEYCODE_DPAD_LEFT", "KEYCODE_DPAD_RIGHT", "KEYCODE_DPAD_CENTER", "KEYCODE_VOLUME_UP", "KEYCODE_VOLUME_DOWN", "KEYCODE_POWER", "KEYCODE_CAMERA", "KEYCODE_CLEAR", "KEYCODE_A", "KEYCODE_B", "KEYCODE_C", "KEYCODE_D", "KEYCODE_E", "KEYCODE_F", "KEYCODE_G", "KEYCODE_H", "KEYCODE_I", "KEYCODE_J", "KEYCODE_K", "KEYCODE_L", "KEYCODE_M", "KEYCODE_N", "KEYCODE_O", "KEYCODE_P", "KEYCODE_Q", "KEYCODE_R", "KEYCODE_S", "KEYCODE_T", "KEYCODE_U", "KEYCODE_V", "KEYCODE_W", "KEYCODE_X", "KEYCODE_Y", "KEYCODE_Z", "KEYCODE_COMMA", "KEYCODE_PERIOD", "KEYCODE_ALT_LEFT", "KEYCODE_ALT_RIGHT", "KEYCODE_SHIFT_LEFT", "KEYCODE_SHIFT_RIGHT", "KEYCODE_TAB", "KEYCODE_SPACE", "KEYCODE_SYM", "KEYCODE_EXPLORER", "KEYCODE_ENVELOPE", "KEYCODE_ENTER", "KEYCODE_DEL", "KEYCODE_GRAVE", "KEYCODE_MINUS", "KEYCODE_EQUALS", "KEYCODE_LEFT_BRACKET", "KEYCODE_RIGHT_BRACKET", "KEYCODE_BACKSLASH", "KEYCODE_SEMICOLON", "KEYCODE_APOSTROPHE", "KEYCODE_SLASH", "KEYCODE_AT", "KEYCODE_NUM", "KEYCODE_HEADSETHOOK", "KEYCODE_FOCUS", "KEYCODE_PLUS", "KEYCODE_MENU", "KEYCODE_NOTIFICATION", "KEYCODE_SEARCH", "KEYCODE_WAKEUP" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AccessDeniedException"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Device not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceNotFoundException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/network/ports" : {
+      "get" : {
+        "tags" : [ "Port forwardings" ],
+        "summary" : "Lists port forwardings",
+        "description" : "Lists port forwardings",
+        "operationId" : "getPorts",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PortForwarding"
+                  }
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Port forwardings" ],
+        "summary" : "Creates a port forwarding",
+        "description" : "Creates a port forwarding",
+        "operationId" : "createPortForwarding",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "portOnDevice",
+          "in" : "query",
+          "description" : "The port on the device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "example" : 4000
+        }, {
+          "name" : "direction",
+          "in" : "query",
+          "description" : "The direction of the port forwarding",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "DEVICE_IS_SERVER", "DEVICE_IS_CLIENT" ]
+          },
+          "example" : true
+        }, {
+          "name" : "protocol",
+          "in" : "query",
+          "description" : "The protocol.",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "TCP", "JDWP" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortForwarding"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/network/ports/{id}" : {
+      "post" : {
+        "tags" : [ "Port forwardings" ],
+        "summary" : "Deletes a port forwarding",
+        "description" : "Deletes a port forwarding",
+        "operationId" : "removeForwarding",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "The id of the forwarding",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "UploadedFile" : {
+        "required" : [ "file" ],
+        "type" : "object",
+        "properties" : {
+          "file" : {
+            "type" : "string",
+            "description" : "A file",
+            "format" : "binary"
+          }
+        }
+      },
+      "AbstractApp" : {
+        "required" : [ "id", "type" ],
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "An identifier for the app",
+            "readOnly" : true
+          },
+          "type" : {
+            "type" : "string",
+            "description" : "The type of app",
+            "readOnly" : true
+          }
+        },
+        "description" : "Information about an app",
+        "discriminator" : {
+          "propertyName" : "type",
+          "mapping" : {
+            "AndroidApp" : "#/components/schemas/AndroidApp",
+            "AbstractApp" : "#/components/schemas/AbstractApp"
+          }
+        }
+      },
+      "AndroidApp" : {
+        "required" : [ "allowBackup", "id", "systemApp", "type" ],
+        "type" : "object",
+        "properties" : {
+          "versionCode" : {
+            "type" : "integer",
+            "description" : "The version code of the app",
+            "format" : "int32",
+            "readOnly" : true
+          },
+          "targetSDK" : {
+            "type" : "integer",
+            "description" : "The target SDK version of the app",
+            "format" : "int32",
+            "readOnly" : true
+          },
+          "versionName" : {
+            "type" : "string",
+            "description" : "The version name of the app",
+            "readOnly" : true
+          },
+          "codePath" : {
+            "type" : "string",
+            "description" : "The path where the app resides on the device",
+            "readOnly" : true
+          },
+          "firstDateInstall" : {
+            "type" : "string",
+            "description" : "The date of first installation",
+            "format" : "date-time",
+            "readOnly" : true
+          },
+          "lastUpdateTime" : {
+            "type" : "string",
+            "description" : "The date of last update",
+            "format" : "date-time",
+            "readOnly" : true
+          },
+          "minSDKVersion" : {
+            "type" : "integer",
+            "description" : "The minimum sdk version",
+            "format" : "int32",
+            "readOnly" : true
+          },
+          "installPermissions" : {
+            "type" : "array",
+            "description" : "Permission requested upon installation",
+            "readOnly" : true,
+            "items" : {
+              "$ref" : "#/components/schemas/AndroidPermission"
+            }
+          },
+          "declaredPermissions" : {
+            "type" : "array",
+            "description" : "Permission declared in the manifest",
+            "readOnly" : true,
+            "items" : {
+              "$ref" : "#/components/schemas/AndroidPermission"
+            }
+          },
+          "runtimePermissions" : {
+            "type" : "array",
+            "description" : "Permission requsted at runtime",
+            "readOnly" : true,
+            "items" : {
+              "$ref" : "#/components/schemas/AndroidPermission"
+            }
+          },
+          "systemApp" : {
+            "type" : "boolean",
+            "description" : "Whether the app is a system app",
+            "readOnly" : true
+          },
+          "allowBackup" : {
+            "type" : "boolean",
+            "description" : "Whether the backup is allowed",
+            "readOnly" : true
+          },
+          "packageName" : {
+            "type" : "string"
+          }
+        },
+        "description" : "Android Application information",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/AbstractApp"
+        } ]
+      },
+      "AndroidPermission" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string"
+          },
+          "granted" : {
+            "type" : "boolean"
+          }
+        },
+        "description" : "Permission requsted at runtime",
+        "readOnly" : true
+      },
+      "APIException" : {
+        "required" : [ "description", "title" ],
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string",
+            "description" : "A short description of the error that occured",
+            "example" : "Internal Error"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "A more detailed description of the error that occured",
+            "example" : "Out of storage space"
+          },
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "description" : "An exception has occurred while processing the request."
+      },
+      "Contact" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "familyName" : {
+            "type" : "string"
+          },
+          "givenName" : {
+            "type" : "string"
+          },
+          "middleName" : {
+            "type" : "string"
+          },
+          "phoneNumbers" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PhoneNumber"
+            }
+          },
+          "emailAddresses" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/EmailAddress"
+            }
+          },
+          "notes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Note"
+            }
+          },
+          "websites" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Website"
+            }
+          },
+          "postalAddresses" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PostalAddress"
+            }
+          },
+          "imAddresses" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/IMAddress"
+            }
+          },
+          "timesContacted" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "lastContact" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "displayName" : {
+            "type" : "string"
+          }
+        }
+      },
+      "EmailAddress" : {
+        "type" : "object",
+        "properties" : {
+          "address" : {
+            "type" : "string"
+          },
+          "displayName" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "HOME", "MOBILE", "OTHER", "WORK" ]
+          },
+          "bindings" : {
+            "type" : "string"
+          }
+        }
+      },
+      "IMAddress" : {
+        "type" : "object",
+        "properties" : {
+          "address" : {
+            "type" : "string"
+          },
+          "protocol" : {
+            "type" : "string"
+          },
+          "bindings" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Note" : {
+        "type" : "object",
+        "properties" : {
+          "note" : {
+            "type" : "string"
+          },
+          "bindings" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PhoneNumber" : {
+        "type" : "object",
+        "properties" : {
+          "number" : {
+            "type" : "string"
+          },
+          "bindings" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PostalAddress" : {
+        "type" : "object",
+        "properties" : {
+          "country" : {
+            "type" : "string"
+          },
+          "region" : {
+            "type" : "string"
+          },
+          "street" : {
+            "type" : "string"
+          },
+          "formatted_address" : {
+            "type" : "string"
+          },
+          "city" : {
+            "type" : "string"
+          },
+          "neighborHood" : {
+            "type" : "string"
+          },
+          "type" : {
+            "type" : "string",
+            "enum" : [ "HOME", "OTHER", "WORK" ]
+          },
+          "postalCode" : {
+            "type" : "string"
+          },
+          "bindings" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Website" : {
+        "type" : "object",
+        "properties" : {
+          "URL" : {
+            "type" : "string"
+          },
+          "bindings" : {
+            "type" : "string"
+          }
+        }
+      },
+      "SavedEnvironment" : {
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "device" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "user" : {
+            "type" : "string"
+          }
+        }
+      },
+      "AndroidDeviceInformation" : {
+        "required" : [ "ID", "batteryLevel", "state", "type" ],
+        "type" : "object",
+        "properties" : {
+          "apiLevel" : {
+            "type" : "integer",
+            "description" : "API level",
+            "format" : "int32",
+            "readOnly" : true,
+            "example" : 19
+          },
+          "serialNumber" : {
+            "type" : "string",
+            "description" : "The serial number",
+            "readOnly" : true,
+            "example" : "The serial number"
+          }
+        },
+        "description" : "Android Device Information",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/DeviceInformation"
+        } ]
+      },
+      "DeviceInformation" : {
+        "required" : [ "ID", "batteryLevel", "state", "type" ],
+        "type" : "object",
+        "properties" : {
+          "ID" : {
+            "type" : "integer",
+            "description" : "The id of the device",
+            "format" : "int32",
+            "readOnly" : true,
+            "example" : 0
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "The name",
+            "readOnly" : true,
+            "example" : "The name"
+          },
+          "state" : {
+            "type" : "string",
+            "description" : "The state of the device",
+            "readOnly" : true,
+            "enum" : [ "OCCUPIED", "FREE", "ERROR", "PREPARING", "DISCONNECTED" ]
+          },
+          "batteryLevel" : {
+            "type" : "integer",
+            "description" : "The battery level (from 0 to 100 percent or -1 if unknown)",
+            "format" : "int32",
+            "readOnly" : true
+          },
+          "reservedBy" : {
+            "type" : "string",
+            "description" : "Who is using the device at the moment",
+            "readOnly" : true
+          },
+          "type" : {
+            "type" : "string",
+            "description" : "Type",
+            "readOnly" : true,
+            "example" : "AndroidDeviceRequirements"
+          }
+        },
+        "description" : "Information about a device",
+        "discriminator" : {
+          "propertyName" : "type",
+          "mapping" : {
+            "AndroidDeviceInformation" : "#/components/schemas/AndroidDeviceInformation",
+            "DeviceInformation" : "#/components/schemas/DeviceInformation"
+          }
+        }
+      },
+      "AndroidDeviceRequirements" : {
+        "required" : [ "minBatteryLevel", "type" ],
+        "type" : "object",
+        "properties" : {
+          "minSDKVersion" : {
+            "type" : "integer",
+            "description" : "The minimum SDK version (-1 if don't care)",
+            "format" : "int32"
+          },
+          "maxSDKVersion" : {
+            "type" : "integer",
+            "description" : "The maximum SDK version (-1 if don't care)",
+            "format" : "int32"
+          }
+        },
+        "description" : "Android device requirements",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/DeviceRequirements"
+        } ]
+      },
+      "DeviceRequirements" : {
+        "required" : [ "minBatteryLevel", "type" ],
+        "type" : "object",
+        "properties" : {
+          "minBatteryLevel" : {
+            "type" : "integer",
+            "description" : "The minimum battery level (-1 if don't care)",
+            "format" : "int32",
+            "default" : 30
+          },
+          "state" : {
+            "type" : "string",
+            "description" : "A required state",
+            "example" : "FREE",
+            "enum" : [ "OCCUPIED", "FREE", "ERROR", "PREPARING", "DISCONNECTED" ]
+          },
+          "type" : {
+            "type" : "string",
+            "description" : "Type",
+            "example" : "AndroidDeviceRequirements"
+          },
+          "reservedBy" : {
+            "type" : "string",
+            "description" : "The device must be reserved by the given user"
+          }
+        },
+        "description" : "Device requirements",
+        "discriminator" : {
+          "propertyName" : "type"
+        }
+      },
+      "AccessDeniedException" : {
+        "required" : [ "description", "title" ],
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string",
+            "description" : "A short description of the error that occured",
+            "example" : "Internal Error"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "A more detailed description of the error that occured",
+            "example" : "Out of storage space"
+          },
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "description" : "Access denied"
+      },
+      "FileOnDevice" : {
+        "required" : [ "directory", "file", "fullPath", "name" ],
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "The short name of the file",
+            "readOnly" : true,
+            "example" : "foo.txt"
+          },
+          "directory" : {
+            "type" : "boolean",
+            "description" : "Whether the file is directory",
+            "readOnly" : true,
+            "example" : false
+          },
+          "file" : {
+            "type" : "boolean",
+            "description" : "Whether the file is a real file",
+            "readOnly" : true,
+            "example" : true
+          },
+          "size" : {
+            "type" : "integer",
+            "description" : "The size of the file in bytes",
+            "format" : "int64",
+            "readOnly" : true,
+            "example" : 2048
+          },
+          "lastModified" : {
+            "type" : "string",
+            "description" : "Last modification date",
+            "format" : "date-time",
+            "readOnly" : true
+          },
+          "fullPath" : {
+            "type" : "string",
+            "description" : "Full path",
+            "readOnly" : true
+          }
+        },
+        "description" : "Information about a file"
+      },
+      "DeviceReservationFailedException" : {
+        "required" : [ "description", "title" ],
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string",
+            "description" : "A short description of the error that occured",
+            "example" : "Internal Error"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "A more detailed description of the error that occured",
+            "example" : "Out of storage space"
+          },
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "description" : "No device could be reserved"
+      },
+      "Intent" : {
+        "required" : [ "action" ],
+        "type" : "object",
+        "properties" : {
+          "action" : {
+            "type" : "string",
+            "description" : "The action",
+            "example" : "android.intent.action.MAIN"
+          },
+          "category" : {
+            "type" : "string",
+            "description" : "The category",
+            "example" : "android.intent.category.LAUNCHER"
+          },
+          "extras" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string",
+              "description" : "The extras"
+            },
+            "description" : "The extras"
+          },
+          "component" : {
+            "type" : "string",
+            "description" : "The component"
+          },
+          "dataURI" : {
+            "type" : "string",
+            "description" : "The data uri"
+          },
+          "mimeType" : {
+            "type" : "string",
+            "description" : "The mime type"
+          },
+          "flags" : {
+            "type" : "integer",
+            "description" : "Flags",
+            "format" : "int32",
+            "example" : 0
+          }
+        },
+        "description" : "An Android Intent"
+      },
+      "DeviceNotFoundException" : {
+        "required" : [ "description", "title" ],
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string",
+            "description" : "A short description of the error that occured",
+            "example" : "Internal Error"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "A more detailed description of the error that occured",
+            "example" : "Out of storage space"
+          },
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "description" : "Device not found"
+      },
+      "PortForwarding" : {
+        "type" : "object",
+        "properties" : {
+          "portOnHostMachine" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "portOnDevice" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "direction" : {
+            "type" : "string",
+            "enum" : [ "DEVICE_IS_SERVER", "DEVICE_IS_CLIENT" ]
+          },
+          "protocolOnDevice" : {
+            "type" : "string",
+            "enum" : [ "TCP", "JDWP" ]
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "APIKey" : {
+        "type" : "apiKey",
+        "description" : "Your API key",
+        "name" : "APIKey",
+        "in" : "header"
+      }
+    }
+  }
+}

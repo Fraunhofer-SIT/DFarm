@@ -1,0 +1,328 @@
+{
+  "openapi" : "3.0.1",
+  "tags" : [ {
+    "name" : "Network",
+    "description" : "Network"
+  } ],
+  "paths" : {
+    "/api/devices/{devid}/network/ports" : {
+      "get" : {
+        "tags" : [ "Network" ],
+        "summary" : "Lists port forwardings",
+        "description" : "Lists port forwardings",
+        "operationId" : "getPorts",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PortForwarding"
+                  }
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put" : {
+        "tags" : [ "Network" ],
+        "summary" : "Creates a port forwarding",
+        "description" : "Creates a port forwarding",
+        "operationId" : "createPortForwarding",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "portOnDevice",
+          "in" : "query",
+          "description" : "The port on the device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "example" : 4000
+        }, {
+          "name" : "direction",
+          "in" : "query",
+          "description" : "The direction of the port forwarding",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "DEVICE_IS_SERVER", "DEVICE_IS_CLIENT" ]
+          },
+          "example" : true
+        }, {
+          "name" : "protocol",
+          "in" : "query",
+          "description" : "The protocol.",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "enum" : [ "TCP", "JDWP" ]
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PortForwarding"
+                }
+              }
+            }
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/network/ports/{id}" : {
+      "post" : {
+        "tags" : [ "Network" ],
+        "summary" : "Deletes a port forwarding",
+        "description" : "Deletes a port forwarding",
+        "operationId" : "removeForwarding",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }, {
+          "name" : "id",
+          "in" : "path",
+          "description" : "The id of the forwarding",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/devices/{devid}/network/sniffing/start" : {
+      "get" : {
+        "tags" : [ "Network" ],
+        "summary" : "stop sniffing traffic on a device",
+        "description" : "manually stop the packet-sniffer",
+        "operationId" : "stopSniffing",
+        "parameters" : [ {
+          "name" : "devid",
+          "in" : "path",
+          "description" : "The id of device",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          },
+          "500" : {
+            "description" : "Internal error",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Wrong input",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/APIException"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "APIException" : {
+        "required" : [ "description", "title" ],
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string",
+            "description" : "A short description of the error that occured",
+            "example" : "Internal Error"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "A more detailed description of the error that occured",
+            "example" : "Out of storage space"
+          },
+          "code" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        },
+        "description" : "An exception has occurred while processing the request."
+      },
+      "PortForwarding" : {
+        "type" : "object",
+        "properties" : {
+          "portOnHostMachine" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "portOnDevice" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "direction" : {
+            "type" : "string",
+            "enum" : [ "DEVICE_IS_SERVER", "DEVICE_IS_CLIENT" ]
+          },
+          "protocolOnDevice" : {
+            "type" : "string",
+            "enum" : [ "TCP", "JDWP" ]
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "APIKey" : {
+        "type" : "apiKey",
+        "description" : "Your API key",
+        "name" : "APIKey",
+        "in" : "header"
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>de.fraunhofer.sit.beast</groupId>
+  <artifactId>BEAST</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>BEAST</name>
+
+<dependencies>
+		<dependency>
+			<groupId>org.soot-oss</groupId>
+			<artifactId>soot</artifactId>
+			<version>4.3.0-SNAPSHOT</version>
+		</dependency>
+</dependencies>
+<repositories>
+  <repository>
+      <id>sonatype-snapshots</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+          <enabled>false</enabled>
+      </releases>
+  </repository>
+</repositories>	
+
+	<modules>
+		<module>AttributesToYAML</module>
+		<module>BEAST-Server</module>
+		<!-- <module>BEAST-Server/target/clients/java/pom.xml</module> -->
+		<!-- <module>BEAST-UI</module> -->
+	</modules>
+
+</project>

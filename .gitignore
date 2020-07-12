@@ -1,0 +1,8 @@
+BEAST-Server/target/
+#BEAST-Server/server.conf
+BEAST-Server/Environments/
+BEAST-Server/Server.db*
+BEAST-Server/Temp/
+BEAST-UI/target/
+AttributesToYAML/target/
+**.class

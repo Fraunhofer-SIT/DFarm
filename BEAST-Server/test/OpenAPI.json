@@ -1,0 +1,58 @@
+{
+  "openapi" : "3.0.1",
+  "paths" : {
+    "/Foo" : {
+      "get" : {
+        "summary" : "Test",
+        "description" : "Test",
+        "operationId" : "getInstalledAppInfo",
+        "responses" : {
+          "200" : {
+            "description" : "OK",
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/BaseClass"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "BaseClass" : {
+        "required" : [ "type" ],
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "description" : "Type",
+            "example" : "AndroidDeviceRequirements"
+          }
+        },
+        "description" : "test",
+        "discriminator" : {
+          "propertyName" : "type"
+        }
+      },
+      "SubClass" : {
+        "required" : [ "type" ],
+        "type" : "object",
+        "properties" : {
+          "additionalPropertyWhichShouldBeThere" : {
+            "type" : "integer",
+            "description" : "Test",
+            "format" : "int32"
+          }
+        },
+        "description" : "SubClass",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/BaseClass"
+        } ]
+      }
+    }
+  }
+}
