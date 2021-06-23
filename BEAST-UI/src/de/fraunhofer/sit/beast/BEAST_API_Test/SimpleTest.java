@@ -34,8 +34,6 @@ public class SimpleTest
         ApiKeyAuth APIKey = (ApiKeyAuth) defaultClient.getAuthentication("APIKey");
         APIKey.setApiKey("YOUR API KEY");
 
-        defaultClient.getHttpClient().setReadTimeout(1, TimeUnit.DAYS);
-         
         DevicesApi devAPI = new DevicesApi(defaultClient);
         AppsApi appsAPI = new AppsApi(defaultClient);
         DeviceEnvironmentsApi envAPI = new DeviceEnvironmentsApi(defaultClient);

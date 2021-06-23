@@ -220,8 +220,6 @@ public class DeviceChooser {
         ApiKeyAuth APIKey = (ApiKeyAuth) defaultClient.getAuthentication("APIKey");
         APIKey.setApiKey("YOUR API KEY");
 
-        defaultClient.getHttpClient().setReadTimeout(1, TimeUnit.DAYS);
-         
         devAPI = new DevicesApi(defaultClient);
         appsAPI = new AppsApi(defaultClient);
         envAPI = new DeviceEnvironmentsApi(defaultClient);
