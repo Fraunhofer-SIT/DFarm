@@ -90,12 +90,12 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlet</artifactId>
-			<version>9.4.42.v20210604</version>
+			<version>9.4.43.v20210629</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-util</artifactId>
-			<version>9.4.42.v20210604</version>
+			<version>9.4.43.v20210629</version>
 		</dependency>
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>
@@ -120,12 +120,12 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-webapp</artifactId>
-			<version>9.4.42.v20210604</version>
+			<version>9.4.43.v20210629</version>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-xml</artifactId>
-			<version>9.4.42.v20210604</version>
+			<version>9.4.43.v20210629</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.resteasy</groupId>
