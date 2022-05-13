@@ -25,11 +25,6 @@ each with one active USB hub and ten Android phones.
 The DFarm software is identical for the main controller and the subcontroller. The configuration
 file defines the role of the instance (main controller or subcontroller).
 
-## Where can I get the DFarm source code?
-
-The DFarm source code will be published here soon. We're currently working on the license, but
-will make sure that DFarm is available for researchers to build upon.
-
 ## Is there an iOS variant of DFarm?
 
 Not at the moment. However, we are confident that the general concepts of DFarm can be ported
