@@ -1,22 +1,34 @@
 package de.fraunhofer.sit.beast.api.operations;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.StreamingOutput;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.io.Connection;
+import org.eclipse.jetty.io.Connection.Listener;
+import org.eclipse.jetty.server.HttpConnection;
 import org.jboss.resteasy.annotations.jaxrs.QueryParam;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 
 import de.fraunhofer.sit.beast.api.data.devices.DeviceInformation;
 import de.fraunhofer.sit.beast.api.data.devices.DeviceRequirements;
@@ -26,6 +38,8 @@ import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
 import de.fraunhofer.sit.beast.api.data.exceptions.AccessDeniedException;
 import de.fraunhofer.sit.beast.api.data.exceptions.DeviceReservationFailedException;
 import de.fraunhofer.sit.beast.internal.DeviceManager;
+import de.fraunhofer.sit.beast.internal.LogBuffer;
+import de.fraunhofer.sit.beast.internal.android.AndroidDeviceManager;
 import de.fraunhofer.sit.beast.internal.interfaces.IDevice;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -49,7 +63,8 @@ import io.swagger.v3.oas.annotations.tags.Tags;
 @Tags(@Tag(name = "Devices", description = "Information about devices"))
 public class Devices
 {
-	
+	private static final Logger LOGGER = LogManager.getLogger(Devices.class);
+
 	
 	/**
 	 * <b>CAUTION</b>
@@ -75,6 +90,7 @@ public class Devices
 		for (IDevice d : dev) {
 			devInfo.add(d.getDeviceInfo());
 		}
+		LOGGER.info("Returning a list of " +dev.size() + " devices");
 		return devInfo;
 	}
 	
@@ -104,6 +120,7 @@ public class Devices
 		for (IDevice d : dev) {
 			devInfo.add(d.getDeviceInfo());
 		}
+		LOGGER.info("Returning a list of " +dev.size() + " devices, whcih satisfy " + deviceRequirements);
 		return devInfo;
 	}
 	
@@ -122,6 +139,43 @@ public class Devices
 			throws Throwable {
 		return DeviceManager.DEVICE_MANAGER.getDeviceById(devid).getDeviceInfo();
 	}
+	
+	@GET
+	@Path("{devid}/log")
+	@Operation(method = "GET", summary = "Get device logs", description = "Gets Logs for a certain process. Swagger-generated clients do not support stream types -> use getDeviceLogsCall(...).execute().body().byteStream() instead.")
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response getDeviceLog(
+			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
+			@PathParam(value = "devid") @Parameter(name = "devid", in = ParameterIn.PATH, description = "The device id", required = true) int devid,
+			@QueryParam(value = "process") @Parameter(name = "process", in = ParameterIn.QUERY, description = "The process id", required = false) String process)
+		
+			throws Throwable {
+		
+		final LogBuffer log = DeviceManager.DEVICE_MANAGER.getDeviceById(devid).getDeviceLog(process);
+		
+		StreamingOutput streamingOutput = new StreamingOutput() {
+			
+			@Override
+			public void write(OutputStream output) throws IOException, WebApplicationException {
+				while (true) {
+					
+					try {
+						String s = log.getMessage();
+						output.write(s.getBytes());
+						output.write('\n');
+						output.flush();
+					} catch (Exception e) {
+						// if the connection closes or times out, close the LogBuffer
+						// to notify whatever produces the messages to quit.
+						log.close();
+						return;
+					}
+				}
+			}
+		};
+		return Response.ok(streamingOutput).header("Stream", "Yes").build();
+	}
+	
 
 	@Operation(method = "GET", summary = "Downloads a screenshot", description = "Downloads a screenshot")
 	@Path("{devid}/screenshot")
@@ -201,20 +255,27 @@ public class Devices
 				 */
 
 				DeviceManager.DEVICE_MANAGER.reserve(apiKey, dev);
-				return dev.getDeviceInfo();
+				DeviceInformation d =  dev.getDeviceInfo();
+				HttpServletRequest http = ResteasyProviderFactory.getInstance().getContextData(HttpServletRequest.class);
+				d.managerHostname = http.getLocalAddr();
+				return d;
 			} catch (APIExceptionWrapper e) {
 				//That's fine...
 			}
 		}
+		if (devices.isEmpty())
+			LOGGER.warn("No device matched " +  ddeviceRequirements.toString());
+		else
+			LOGGER.warn("No device out ouf matching" + devices.size() + " could be reserved");
 		throw new APIExceptionWrapper(new DeviceReservationFailedException(590, "No device available", "No device available"));
 	}
 
 	
 	
 
-	@POST
+	@GET
 	@Path("/{devid}/execute")
-	@Operation(method = "POST", summary = "Executes a command on the device", description = "Executes a command on the device and returns the result")
+	@Operation(method = "GET", summary = "Executes a command on the device", description = "Executes a command on the device and returns the result")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = String.class))),
 			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))),
@@ -223,10 +284,11 @@ public class Devices
 	public String executeOnDevice(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam(value = "devid") @Parameter(name = "devid", in = ParameterIn.PATH, description = "The device id", required = true) int devid,
-			@javax.ws.rs.QueryParam(value = "command") @Parameter(name = "command", in = ParameterIn.QUERY, description = "The command", required = true) String command)
+			@jakarta.ws.rs.QueryParam(value = "command") @Parameter(name = "command", in = ParameterIn.QUERY, description = "The command", required = true) String command)
 			throws Throwable {
 		IDevice dev = DeviceManager.DEVICE_MANAGER.getDeviceByIdChecked(apiKey, devid);
 		return dev.executeOnDevice(command);
+
 	}
 
 	@GET
@@ -238,9 +300,13 @@ public class Devices
 	@Produces(MediaType.APPLICATION_JSON)
 	public void releaseDevice(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
-			@PathParam(value = "devid") @Parameter(name = "devid", in = ParameterIn.PATH, description = "The device id", required = true) int devid)
+			@PathParam(value = "devid") @Parameter(name = "devid", in = ParameterIn.PATH, description = "The device id", required = true) int devid,
+			@QueryParam(value = "reset") @Parameter(name = "reset", in = ParameterIn.QUERY, description = "Whether to reset the device") Boolean reset
+			)
 			throws Throwable {
-		DeviceManager.DEVICE_MANAGER.release(apiKey, devid);
+		if (reset == null)
+			reset = true;
+		DeviceManager.DEVICE_MANAGER.release(apiKey, devid, reset);
 	}
 
 	@GET
@@ -251,7 +317,11 @@ public class Devices
 			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))) })
 	@Produces(MediaType.APPLICATION_JSON)
 	public void releaseAllDevices(
-			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey)			throws Throwable {
-		DeviceManager.DEVICE_MANAGER.releaseAll(apiKey);
+			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
+			@QueryParam(value = "reset") @Parameter(name = "reset", in = ParameterIn.QUERY, description = "Whether to reset the device") Boolean reset
+			)			throws Throwable {
+		if (reset == null)
+			reset = true;
+		DeviceManager.DEVICE_MANAGER.releaseAll(apiKey, reset);
 	}
 }

@@ -218,7 +218,7 @@ public class DeviceChooser {
         defaultClient.setBasePath(url);
 
         ApiKeyAuth APIKey = (ApiKeyAuth) defaultClient.getAuthentication("APIKey");
-        APIKey.setApiKey("YOUR API KEY");
+        APIKey.setApiKey(System.getenv("DFARMAPIKEY"));
 
         devAPI = new DevicesApi(defaultClient);
         appsAPI = new AppsApi(defaultClient);

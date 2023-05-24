@@ -7,7 +7,7 @@ import java.sql.Statement;
 import java.util.Properties;
 
 import com.j256.ormlite.db.DatabaseType;
-import com.j256.ormlite.db.SqliteDatabaseType;
+import com.j256.ormlite.jdbc.db.SqliteDatabaseType;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.logger.Logger;
 import com.j256.ormlite.support.DatabaseConnection;

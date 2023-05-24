@@ -1,35 +1,47 @@
 package de.fraunhofer.sit.beast.applications;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
+import org.eclipse.jetty.servlet.listener.ELContextCleaner;
+import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.jboss.logging.Message;
+import org.eclipse.jetty.webapp.WebXmlConfiguration;
+import org.jboss.resteasy.resteasy_jaxrs.i18n.LogMessages;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -38,6 +50,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import de.fraunhofer.sit.beast.api.data.devices.DeviceInformation;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
+import de.fraunhofer.sit.beast.api.data.exceptions.ExceptionProvider;
 import de.fraunhofer.sit.beast.internal.Config;
 import de.fraunhofer.sit.beast.internal.ConfigBase;
 import de.fraunhofer.sit.beast.internal.DeviceManager;
@@ -50,6 +63,16 @@ import de.fraunhofer.sit.beast.internal.interfaces.IFile;
 import de.fraunhofer.sit.beast.internal.interfaces.IFileListing;
 import de.fraunhofer.sit.beast.internal.persistance.Database;
 import de.fraunhofer.sit.beast.internal.utils.IOUtils;
+import de.fraunhofer.sit.beast.internal.utils.MainUtils;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.jaxrs2.Reader;
+import io.swagger.v3.oas.models.OpenAPI;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class Main {
 	public static final String API_RANGES_END = "/api/ranges/end";
@@ -66,7 +89,9 @@ public class Main {
 	private static void maintainSlaves() {
 		for (Map.Entry<SlaveConnection, SlaveConnection> entry : slaves.entrySet()) {
 			SlaveConnection slave = entry.getValue();
-			final String HeartbeatTimeout = ConfigBase.getProperties().get("HeartbeatTimeout");
+			String HeartbeatTimeout = ConfigBase.getProperties().get("HeartbeatTimeout");
+			if (HeartbeatTimeout == null)
+				HeartbeatTimeout = "60000";
 			if ((System.currentTimeMillis() - slave.getLastHeartbeat()) > Integer.valueOf(HeartbeatTimeout)) {
 				slaves.remove(slave);
 			} else {
@@ -77,7 +102,10 @@ public class Main {
 	}
 
 	public static void main(String[] args) throws Exception {
-		for (int i = 0; i < args.length; i++) {
+		
+		LogUtils.initialize();
+		
+		for (int i = 0; i < args.length; i++) { 
 			final String arg = args[i];
 			if (arg.equals("--port")) {
 				port = Integer.valueOf(args[i + 1]);
@@ -107,31 +135,40 @@ public class Main {
 						heartbeatTarget + "?port=" + Main.port + "&startRange=" + startRange + "&endRange=" + endRange);
 				String slaveIp = InetAddress.getLocalHost().getHostAddress();
 				commanderMode = false;
-				Timer timer = new Timer();
-				timer.schedule(new TimerTask() {
-
+				Thread thrConnectToMain = new Thread() {
 					@Override
 					public void run() {
 						try {
-							HttpURLConnection con = (HttpURLConnection) dest.openConnection();
-							con.setRequestMethod("GET");
-							if (con.getResponseCode() != 200) {
-								LOGGER.error(String.format(
-										"Connection to Master failed for Slave: %s failed with response code %d",
-										slaveIp, con.getResponseCode()));
+							while (true) {
+								try {
+									Thread.sleep(5000);
+								} catch (InterruptedException e1) {
+								}
+								try {
+									HttpURLConnection con = (HttpURLConnection) dest.openConnection();
+									con.setRequestMethod("GET");
+									if (con.getResponseCode() != 200) {
+										LOGGER.error(String.format(
+												"Connection to Master failed for Slave: %s failed with response code %d",
+												slaveIp, con.getResponseCode()));
+									}
+								} catch (Throwable e) {
+									LOGGER.error("Error while connecting to Master: " + dest.toString(), e);
+								}
+	
 							}
-						} catch (IOException e) {
-							LOGGER.error("Error while connecting to Master", e);
+						} finally {
+							LOGGER.error("Connection to main server thread is in finally block. This should not happen!");
+							
 						}
-
 					}
-				}, 0, 5000);
+				};
+				thrConnectToMain.start();
 				i++;
 				continue;
 
 			}
 		}
-		LogUtils.initialize();
 		try {
 			Database.initialize();
 		} catch (Throwable t) {
@@ -160,22 +197,61 @@ public class Main {
 		DeviceManager.DEVICE_MANAGER.initialize();
 		LOGGER.warn("Starting the Best Environment for Analyzing Smartphoneapplications and Testing");
 		WebAppContext wacontext = new WebAppContext();
-		wacontext.setDescriptor(IOUtils.getResourcePath("/web.xml").getAbsolutePath());
+		ELContextCleaner.class.getName();
+		System.setProperty("jakarta.ws.rs.Application", ApplicationConfig.class.getCanonicalName());
+		System.setProperty("resteasy.providers", ExceptionProvider.class.getName());
 		wacontext.setParentLoaderPriority(true);
 		wacontext.setThrowUnavailableOnStartupException(true);
+		wacontext.setConfigurations(new Configuration[] { new WebXmlConfiguration() {
+
+		    protected Resource findWebXml(WebAppContext context) throws IOException, MalformedURLException
+		    {
+		        Resource dir = context.getBaseResource();
+		        if (dir != null && dir.isDirectory())
+		        {
+		            // do web.xml file
+		            Resource web = dir.addPath("web.xml");
+		            if (web.exists())
+		                return web;
+		            
+		            Resource cp = Resource.newClassPathResource("/web.xml");
+		            if (cp != null && cp.exists())
+		            	return cp;
+		            cp = Resource.newClassPathResource("web.xml");
+		            if (cp != null && cp.exists())
+		            	return cp;
+		        }
+		        return super.findWebXml(wacontext);
+		    }
+		   }
+		});
+		/*wacontext.setParentLoaderPriority(true);
 		wacontext.setContextPath("/");
 
 		wacontext.setResourceBase("/");
-		wacontext.setParentLoaderPriority(true);
+		wacontext.setParentLoaderPriority(true);*/
+		wacontext.setResourceBase(new File("").getAbsolutePath());
 
-		Server server = new Server(port);
-		wacontext.setServer(server);
+		QueuedThreadPool threadPool = new QueuedThreadPool(100000, 10);
+		Server server = new Server(threadPool);
+        ServerConnector connector = new ServerConnector(server);
+        connector.setPort(port);
+        server.setConnectors(new Connector[]{connector});
+
+        wacontext.setServer(server);
+		wacontext.setClassLoader(new ClassLoader(Thread.currentThread().getContextClassLoader()) {
+			@Override
+			protected Class<?> findClass(String name) throws ClassNotFoundException {
+				return super.findClass(name);
+			}
+		});
 		server.setHandler(new AbstractHandler() {
 			final Pattern extractDevId = Pattern.compile("/api/devices/(\\d+).*");
 
 			@Override
 			protected void doStart() throws Exception {
-				super.start();
+				Class.forName("org.eclipse.jetty.servlet.listener.ELContextCleaner");
+				//super.start();
 				wacontext.start();
 			}
 
@@ -186,7 +262,7 @@ public class Main {
 					response.sendRedirect("/api-docs/");
 					return;
 				}
-				
+				MainUtils.setPublicHostname(baseRequest.getLocalAddr());
 				if (target.startsWith(certTarget) && (commanderMode)) {
 					response.setStatus(200);
 					response.setContentType("text/html");
@@ -260,7 +336,7 @@ public class Main {
 
 				}
 
-				if (target.startsWith("/api/") && !target.equals("/api/OpenAPI.json")) {
+				if (target.startsWith("/api/") && !target.equals("/api/openapi.json")) {
 					if (commanderMode) {
 						// We have to forward some requests and aggregate
 						// others.
@@ -270,6 +346,7 @@ public class Main {
 							for (Map.Entry<SlaveConnection, SlaveConnection> entry : slaves.entrySet()) {
 								SlaveConnection slave = entry.getValue();
 								if (slave.isInRange(devid)) {
+									LOGGER.error("Forwarding " + request.getQueryString() + " to slave" + slave.getBaseUrl());
 									slave.forward(target, request, response.getOutputStream(), response);
 									response.getOutputStream().close();
 									return;
@@ -305,8 +382,19 @@ public class Main {
 					}
 					return;
 				}
-				if (target.startsWith("/api/OpenAPI."))
-					target = "/api-docs" + target.substring(target.lastIndexOf("/"));
+				if (target.startsWith("/api/openapi."))
+				{
+					Reader readerFinal = new Reader(new OpenAPI());
+					OpenAPI o = readerFinal.read(new ApplicationConfig().getMyClasses());
+					try {
+						String s = Json.pretty().writeValueAsString(o);
+						try (PrintWriter w = response.getWriter()) {
+							w.print(s);
+						}
+						return;
+					} catch (JsonProcessingException e) {
+						LOGGER.error("Could not convert to JSON", e);					}
+				}
 				if (target.equals("/api-docs") || target.equals("/api-docs/"))
 					target = "/api-docs/index.html";
 
@@ -348,18 +436,52 @@ public class Main {
 					throws IOException, UnsupportedEncodingException {
 				response.setContentType("application/json");
 				Exception ex = null;
-				for (Map.Entry<SlaveConnection, SlaveConnection> entry : slaves.entrySet()) {
-					SlaveConnection slave = entry.getValue();
-					{
-						try {
-							byte[] res = slave.forward(target, request);
-							response.setContentLength(res.length);
-							response.getOutputStream().write(res);
-							response.getOutputStream().close();
-							return;
-						} catch (Exception e) {
-							ex = e;
+				if (!request.getMethod().equals("GET")) {
+					byte[] b = org.apache.commons.io.IOUtils.toByteArray(request.getInputStream());
+					final HttpServletRequest origRequest =request;
+					request = new HttpServletRequestWrapper(origRequest) {
+						public ServletInputStream getInputStream() {
+							ByteArrayInputStream bis = new ByteArrayInputStream(b);
+							return new ServletInputStream() {
+
+								@Override
+								public boolean isFinished() {
+									return true;
+								}
+
+								@Override
+								public boolean isReady() {
+									return true;
+								}
+
+								@Override
+								public void setReadListener(ReadListener readListener) {
+									throw new RuntimeException();
+								}
+
+								@Override
+								public int read() throws IOException {
+									return bis.read();
+								}
+
+								
+							};
 						}
+					};
+				}
+				
+				List<SlaveConnection> res = new ArrayList<>(slaves.keySet());
+				Collections.shuffle(res);
+				for (SlaveConnection slave : res) {
+					try {
+						byte[] cres = slave.forward(target, request);
+						response.setContentLength(cres.length);
+						response.getOutputStream().write(cres);
+						response.getOutputStream().close();
+						return;
+					} catch (Exception e) {
+						ex = e;
+						LOGGER.error("Error on slave" +slave.getBaseUrl(), e);
 					}
 				}
 				if (ex != null) {
@@ -403,8 +525,11 @@ public class Main {
 							byte[] res = slave.forward(target, request);
 							DeviceInformation[] r = mapper.readValue(res, DeviceInformation[].class);
 							if (r != null) {
-								for (DeviceInformation i : r)
+								for (DeviceInformation i : r) {
+									i.managerHostname = slave.getBaseUrl().getHost();
 									allDevs.add(i);
+								}
+									
 							}
 						} catch (HttpCodeException e) {
 							response.setStatus(e.responseCode);
@@ -419,7 +544,10 @@ public class Main {
 			
 
 		});
+		System.setProperty("org.jboss.logging.provider", "log4j2");
 		server.start();
 
 	}
+
+	
 }

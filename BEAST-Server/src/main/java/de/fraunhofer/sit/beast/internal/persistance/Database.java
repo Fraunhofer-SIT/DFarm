@@ -5,15 +5,15 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.android.ddmlib.IDevice;
 import com.j256.ormlite.dao.CloseableIterator;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.db.DatabaseType;
-import com.j256.ormlite.db.SqliteDatabaseType;
+import com.j256.ormlite.jdbc.db.SqliteDatabaseType;
 import com.j256.ormlite.field.DataPersisterManager;
 import com.j256.ormlite.table.TableUtils;
 
@@ -137,11 +137,11 @@ public class Database {
 				metadata = itMetadata.next();
 			else {
 				metadata = new DBMetaInfo();
-				metadata.lastID = Config.getDeviceStartRange() - 2;
+				metadata.lastID = Config.getDeviceStartRange() - 1;
 				metadata.schemaVersion = DB_SCHEMA_VERSION;
 				daoDBMetaInfo.create(metadata);
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			LOGGER.error("Error while creating meta data record", e);
 		}
 	}
@@ -170,6 +170,7 @@ public class Database {
 			Error error = new Error();
 			error.stackTrace = ExceptionUtils.getStackTrace(t);
 			error.text = t.getMessage();
+			LOGGER.error("An error occurred", t);
 			Database.INSTANCE.addException(error);
 			return;
 		}
@@ -184,12 +185,15 @@ public class Database {
 	}
 
 	public static void logError(Throwable t) {
+		String st = ExceptionUtils.getStackTrace(t);
+		LOGGER.error("An error occurred: ", t);
 		Error error = new Error();
-		error.stackTrace = ExceptionUtils.getStackTrace(t);
+		error.stackTrace = st;
 		error.text = t.getMessage();
 		Database.INSTANCE.addException(error);
 	}
 	public static void logError(String text) {
+		LOGGER.error("An error occurred: " + text);
 		Error error = new Error();
 		error.stackTrace = null;
 		error.text = text;
@@ -197,6 +201,9 @@ public class Database {
 	}
 
 	public static void logError(de.fraunhofer.sit.beast.internal.interfaces.IDevice device, Throwable t) {
+		String text = String.format("An error with device %s was logged",
+				device.toString());
+		LOGGER.error(text, t);
 		Error error = new Error();
 		error.stackTrace = ExceptionUtils.getStackTrace(t);
 		error.text = t.getMessage();

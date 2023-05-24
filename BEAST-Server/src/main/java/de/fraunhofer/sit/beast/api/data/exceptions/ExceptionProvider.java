@@ -3,13 +3,14 @@ package de.fraunhofer.sit.beast.api.data.exceptions;
 import java.io.EOFException;
 import java.util.concurrent.ExecutionException;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.fraunhofer.sit.beast.internal.exceptions.NoStacktraceException;
 import de.fraunhofer.sit.beast.internal.persistance.Database;
@@ -18,7 +19,7 @@ import de.fraunhofer.sit.beast.internal.persistance.Database;
 @Provider
 public class ExceptionProvider implements ExceptionMapper<Throwable> {
 
-	private static final Logger logger = Logger.getLogger(ExceptionProvider.class);
+	private static final Logger logger = LogManager.getLogger(ExceptionProvider.class);
 
 	@Override
 	public Response toResponse(Throwable t) {

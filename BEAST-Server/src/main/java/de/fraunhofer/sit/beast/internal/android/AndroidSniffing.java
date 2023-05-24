@@ -9,8 +9,8 @@ import java.net.URL;
 import java.text.MessageFormat;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
-import org.jboss.logging.Message;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
 import de.fraunhofer.sit.beast.internal.ConfigBase;
@@ -23,7 +23,7 @@ import soot.jimple.infoflow.android.manifest.ProcessManifest;
 public class AndroidSniffing implements ISniffing {
 
 	private AndroidDevice device;
-	private static final Logger LOGGER = Logger.getLogger(AndroidSniffing.class);
+	private static final Logger logger = LogManager.getLogger(AndroidSniffing.class);
 
 	public AndroidSniffing(AndroidDevice device) {
 		this.device = device;
@@ -77,7 +77,7 @@ public class AndroidSniffing implements ISniffing {
 			// Upload tmpfile to device
 			
 		} catch (IOException e) {
-			LOGGER.error("error while creating cert-file", e);
+			logger.error("error while creating cert-file", e);
 		}
 
 		

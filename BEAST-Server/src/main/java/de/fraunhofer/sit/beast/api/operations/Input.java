@@ -8,24 +8,37 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IShellOutputReceiver;
+import com.android.ddmlib.NullOutputReceiver;
+import com.android.ddmlib.ShellCommandUnresponsiveException;
+import com.android.ddmlib.TimeoutException;
+import com.google.common.base.Charsets;
 
 import de.fraunhofer.sit.beast.api.data.Key;
 import de.fraunhofer.sit.beast.api.data.UploadedFile;
 import de.fraunhofer.sit.beast.api.data.android.Intent;
+import de.fraunhofer.sit.beast.api.data.android.MonkeyOptions;
+import de.fraunhofer.sit.beast.api.data.contacts.IMAddress;
 import de.fraunhofer.sit.beast.api.data.devices.DeviceInformation;
 import de.fraunhofer.sit.beast.api.data.devices.DeviceRequirements;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
@@ -58,6 +71,7 @@ import io.swagger.v3.oas.annotations.tags.Tags;
 @SecuritySchemes(value = @SecurityScheme(type = SecuritySchemeType.APIKEY, description = "Your API key", in = SecuritySchemeIn.HEADER, name = "APIKey", paramName = "APIKey"))
 @Tags(@Tag(name = "Input", description = "Provides interfaces to input controls"))
 public class Input {
+	private static final Logger logger = LogManager.getLogger(Input.class);
 
 	@Operation(method = "GET", summary = "Taps on screen", description = "Taps on screen")
 	@Path("/tap")
@@ -138,6 +152,76 @@ public class Input {
 
 	}
 
+
+	@POST
+    @Consumes("application/json")
+	@Path("/android/startMonkey")
+	@Operation(method = "POST", summary = "Starts the monkey application exerciser", description = "Starts the monkey application exerciser, which randomly executes inputs on the device. Android only")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content( schema =  @Schema(implementation = String.class))),
+			@ApiResponse(responseCode = "401", description = "Not an android device", content = @Content(schema = @Schema(implementation = APIException.class))),
+			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))),
+			@ApiResponse(responseCode = "510", description = "No device available", content = @Content(schema = @Schema(implementation = DeviceReservationFailedException.class))), })
+	@Produces(MediaType.TEXT_PLAIN)
+	public String startMonkey(
+			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
+			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
+			@RequestBody(description = "The options of monkey", required = true) MonkeyOptions monkeyOptions) throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, IllegalArgumentException, IllegalAccessException
+	{
+		String s = monkeyOptions.getCommandSyntax();
+		logger.info("Starting monkey: " + s);
+		System.out.println("Starting monkey: " + s);
+		AndroidDevice d = getAndroidDevice(apiKey, devid);
+		AtomicBoolean finished = new AtomicBoolean();
+		StringBuilder sb = new StringBuilder();
+		Thread thr = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					d.getAndroidDevice().executeShellCommand(s, new IShellOutputReceiver() {
+
+						@Override
+						public void addOutput(byte[] data, int offset, int length) {
+							String s = new String(data, offset, length, Charsets.UTF_8);
+							sb.append(s);
+							String log = "Monkey output: " + s;
+							System.out.println(log);
+							logger.info(log);
+						}
+
+						@Override
+						public void flush() {
+						}
+
+						@Override
+						public boolean isCancelled() {
+							return false;
+						}
+						
+					}, 1, TimeUnit.DAYS);
+					finished.set(true);
+				} catch (Exception e) {
+					logger.error("An error occurred while running " + s, e);
+				}
+			}
+			
+		});
+		thr.setDaemon(true);
+		thr.start();
+		long ms = System.currentTimeMillis();
+		while (!finished.get()) {
+			if (System.currentTimeMillis() - ms > 2000) {
+				return "[Showing first 2 seconds of monkey output]\n" + sb.toString();
+			}
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		return sb.toString();
+	}
 	
 	@POST
     @Consumes("application/json")
@@ -153,8 +237,8 @@ public class Input {
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
 			@RequestBody(description = "The intent ot send", required = false) Intent intent,
-			@QueryParam("forceStopBefore") @Parameter(name = "forceStopBefore", in = ParameterIn.PATH, description = "Whether to force stop the application before", required = false, example="false") boolean forceStopBefore,
-			@QueryParam("waitForDebugger") @Parameter(name = "waitForDebugger", in = ParameterIn.PATH, description = "Whether to wait for a debugger", required = false, example="false") boolean waitForDebugger
+			@QueryParam("forceStopBefore") @Parameter(name = "forceStopBefore", in = ParameterIn.QUERY, description = "Whether to force stop the application before", required = false, example="false") boolean forceStopBefore,
+			@QueryParam("waitForDebugger") @Parameter(name = "waitForDebugger", in = ParameterIn.QUERY, description = "Whether to wait for a debugger", required = false, example="false") boolean waitForDebugger
 			)
 			  {
 		AndroidDevice d = getAndroidDevice(apiKey, devid);
@@ -232,7 +316,7 @@ public class Input {
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
 			@RequestBody(description = "The intent ot send", required = false) Intent intent, 
-			@QueryParam("receiverPermission") @Parameter(name = "receiverPermission", in = ParameterIn.PATH, description = "The permission a receiver needs to have", required = false, example="") String receiverPermission
+			@QueryParam("receiverPermission") @Parameter(name = "receiverPermission", in = ParameterIn.QUERY, description = "The permission a receiver needs to have", required = false, example="") String receiverPermission
 			) {
 		AndroidDevice d = getAndroidDevice(apiKey, devid);
 		d.broadcast(intent, receiverPermission);

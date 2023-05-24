@@ -5,7 +5,7 @@ import com.j256.ormlite.field.DatabaseField;
 
 import de.fraunhofer.sit.beast.internal.persistance.SavedEnvironment;
 
-@JsonIgnoreProperties({ "env", "id" })
+@JsonIgnoreProperties({ "env"})
 public class PortForwarding {
 	@DatabaseField
 	public int id = -1;
@@ -59,7 +59,7 @@ public class PortForwarding {
 	@Override
 	public String toString() {
 		return "Port On Host Machine=" + portOnHostMachine + "\nPort On Device=" + portOnDevice + "\nDirection=" + direction
-				+ "\nProtocol On Device=" + protocolOnDevice;
+				+ "\nProtocol On Device=" + protocolOnDevice + "\nId=" + id;
 	}
 	
 	

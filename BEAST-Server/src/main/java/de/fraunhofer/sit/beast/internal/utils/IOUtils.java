@@ -16,11 +16,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class IOUtils {
 
-	private static final Logger logger = Logger.getLogger(IOUtils.class);
+	private static final Logger logger = LogManager.getLogger(IOUtils.class);
 
 	// this data structure keeps track of files created in temp directory
 	public static final Set<File> concurrentTempCleanupSet = Collections
@@ -92,7 +93,12 @@ public class IOUtils {
 		if (csource == null)
 			throw new RuntimeException("No code source for IOUtils");
 		URL url = csource.getLocation();
+		
 		File projectDir = new File(url.getFile()).getParentFile();
+		
+		if (url.getPath().endsWith("/build/classes/"))
+			projectDir = new File(url.getFile()).getParentFile().getParentFile();
+		
 		File f = new File(projectDir, source.substring(1));
 
 		if (f.exists())

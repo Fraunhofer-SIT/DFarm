@@ -10,19 +10,21 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.StreamingOutput;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
@@ -58,18 +60,20 @@ import io.swagger.v3.oas.annotations.tags.Tags;
 @Tags(@Tag(name = "Apps", description = "Manages the applications"))
 public class Apps
 {
+	private static final Logger LOGGER = LogManager.getLogger(Devices.class);
+
 	@RequestBody(description = "App to install", required = true, content = {
 			@Content(mediaType = "multipart/form-data", schema = @Schema(implementation = UploadedFile.class, type = "object")) })
 	@Operation(method = "POST", summary = "Installs an app", description = "Uploads a file and installs it as an app")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AbstractApp.class))),
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = String.class))),
 			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "400", description = "Wrong input", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = APIException.class))), })
 	@POST
 	@Path("/installApplication")
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public AbstractApp installApplication(
+	public String installApplication(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
 			@Parameter(hidden = true) MultipartFormDataInput input) throws Exception {
@@ -87,7 +91,11 @@ public class Apps
 				try (FileOutputStream output = new FileOutputStream(file)) {
 					org.apache.commons.io.IOUtils.copy(inputStream, output);
 					output.close();
-					return device.install(file);
+					LOGGER.info("About to install an application to " + devid);
+					String d = device.install(file);
+					if (d != null) 
+						LOGGER.info("Install of " + d + " to " + devid + " was successfull");
+					return d;
 				}
 			} finally {
 				file.delete();
@@ -100,7 +108,7 @@ public class Apps
 
 	@Operation(method = "DELETE", summary = "Uninstalls an app", description = "Uninstalls an app")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AbstractApp.class))),
+			@ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "400", description = "Wrong input", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = APIException.class))), })
@@ -111,6 +119,7 @@ public class Apps
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
 			@PathParam("appid") @Parameter(name = "appid", description = "The id of app", required = true, in = ParameterIn.PATH) String appid) {
 		IDevice device = DeviceManager.DEVICE_MANAGER.getDeviceByIdChecked(apiKey, devid);
+		LOGGER.info("About to remove " + appid + " from " + devid);
 		device.getDeviceInfo().updateLastUsed(apiKey);
 		device.uninstall(appid);
 	}
@@ -126,10 +135,10 @@ public class Apps
 	public AbstractApp getInstalledAppInfo(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@PathParam("appid") @Parameter(name = "appid", description = "The id of app", required = true, in = ParameterIn.PATH) String appid,
-			@Parameter(hidden = true) MultipartFormDataInput input) throws Exception {
+			@PathParam("appid") @Parameter(name = "appid", description = "The id of app", required = true, in = ParameterIn.PATH) String appid) throws Exception {
 		IDevice device = DeviceManager.DEVICE_MANAGER.getDeviceById(devid);
 		device.getDeviceInfo().updateLastUsed(apiKey);
+		LOGGER.info("About to return information about " + appid + " on " + devid);
 		return device.getInstalledApp(appid);
 	}
 

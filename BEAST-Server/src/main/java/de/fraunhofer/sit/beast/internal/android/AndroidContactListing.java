@@ -9,10 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.NotFoundException;
+import jakarta.ws.rs.NotFoundException;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.fraunhofer.sit.beast.api.data.contacts.Contact;
 import de.fraunhofer.sit.beast.api.data.contacts.EmailAddress;
@@ -28,7 +29,7 @@ import de.fraunhofer.sit.beast.internal.interfaces.IContactListing;
 import de.fraunhofer.sit.beast.internal.persistance.Database;
 
 public class AndroidContactListing implements IContactListing {
-	private static final Logger logger = Logger.getLogger(AndroidContactListing.class);
+	private static final Logger logger = LogManager.getLogger(AndroidContactListing.class);
 
 	private AndroidDevice device;
 	

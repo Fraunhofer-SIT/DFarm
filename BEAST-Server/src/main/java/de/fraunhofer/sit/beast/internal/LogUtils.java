@@ -10,8 +10,10 @@ import java.text.SimpleDateFormat;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.ConfigurationSource;
+import org.apache.logging.log4j.core.config.Configurator;
 
 public class LogUtils {
 
@@ -69,19 +71,8 @@ public class LogUtils {
 
 			// Do we have a configuration file?
 			if (inp != null) {
-				Properties props = new Properties();
-				props.load(inp);
-				Object p = props.get("log4j.appender.logfile.File");
-				if (p == null)
-					System.out.println("No log file placeholders to configure.");
-				else {
-					String s = p.toString();
-					s = s.replace("%X{DateTime}", new SimpleDateFormat("yyyy.MM.dd 'at' HH-mm-ss z")
-							.format(new Date(System.currentTimeMillis())));
-					props.setProperty("log4j.appender.logfile.File", s);
-					System.out.println("Log file placeholders configured.");
-				}
-				PropertyConfigurator.configure(props);
+				ConfigurationSource source = new ConfigurationSource(inp);
+				Configurator.initialize(null, source);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -92,7 +83,7 @@ public class LogUtils {
 			}
 		}
 
-		logger = Logger.getLogger("Generic");
+		logger = LogManager.getLogger("Generic");
 		logger.info("Logging infrastructure initialized.");
 	}
 

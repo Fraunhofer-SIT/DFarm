@@ -29,6 +29,11 @@ public class DeviceRequirements {
 	@Schema(required = false, description = "The device must be reserved by the given user", example="")
 	public String reservedBy;
 	
+	@Schema(required = false, description = "Excluded device ids", example="")
+	public Integer[] excludedIDs;
+	
+	
+	
 	public DeviceRequirements(String type) {
 		this.type =type;
 	}
@@ -36,4 +41,12 @@ public class DeviceRequirements {
 	public DeviceRequirements() {
 		
 	}
+
+	@Override
+	public String toString() {
+		return "DeviceRequirements [minBatteryLevel=" + minBatteryLevel + ", state=" + state + ", type=" + type
+				+ ", reservedBy=" + reservedBy + "]";
+	}
+	
+	
 }

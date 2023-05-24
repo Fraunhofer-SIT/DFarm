@@ -1,7 +1,8 @@
 package de.fraunhofer.sit.beast.internal.android;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.android.ddmlib.InstallException;
 
@@ -16,16 +17,20 @@ public class AndroidUtils {
 			return (APIExceptionWrapper) t;
 		}
 		
+		LOGGER.error("An exception occurred", t);
 		if (t instanceof InstallException) {
 			String msg = t.getMessage();
-			if (msg.contains("INSTALL_FAILED_ALREADY_EXISTS"))
+			if (msg == null) {
+				if (t.getCause() != null)
+					msg = ExceptionUtils.getMessage(t.getCause());
+			}
+			if (msg != null && msg.contains("INSTALL_FAILED_ALREADY_EXISTS"))
 			{
 				return new APIExceptionWrapper(new APIException(500, "App already installed", t.getMessage()));
-				
 			}
-			System.out.println();
+			if (msg == null)
+				return new APIExceptionWrapper(new APIException(500, "An unknown error occurred: " + t.getMessage(), "An unknown error occurred: " + msg));
 		}
-		LOGGER.error("An exception occurred", t);
 
 		return new APIExceptionWrapper(new APIException(500, t.getMessage(), t.getMessage()));
 	}

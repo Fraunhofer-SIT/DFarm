@@ -114,13 +114,13 @@ public class ApplicationWindow {
 				if (userSelection == JFileChooser.APPROVE_OPTION) {
 					final ProgressWindow window = new ProgressWindow();
 					try {
-						appsAPI.installApplicationAsync(device.getID(), fileChooser.getSelectedFile(), new OwnApiCallback<AbstractApp>() {
+						appsAPI.installApplicationAsync(device.getID(), fileChooser.getSelectedFile(), new OwnApiCallback<String>() {
 
 							public void onUploadProgress(long bytesWritten, long contentLength, boolean done) {
 								window.showProgress(String.format("Installing app: %s", fileChooser.getSelectedFile().getName()), bytesWritten, contentLength);
 							}
 							
-							public void onSuccess(AbstractApp result, int statusCode,
+							public void onSuccess(String result, int statusCode,
 									Map<String, List<String>> responseHeaders) {
 								window.dispose();
 							}

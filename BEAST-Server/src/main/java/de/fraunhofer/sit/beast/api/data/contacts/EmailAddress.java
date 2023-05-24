@@ -1,6 +1,5 @@
 package de.fraunhofer.sit.beast.api.data.contacts;
 
-import org.apache.log4j.Logger;
 
 import de.fraunhofer.sit.beast.api.data.exceptions.ExceptionProvider;
 import de.fraunhofer.sit.beast.internal.android.AndroidUtils;

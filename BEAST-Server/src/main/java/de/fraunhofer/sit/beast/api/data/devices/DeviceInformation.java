@@ -30,26 +30,31 @@ include = JsonTypeInfo.As.PROPERTY,
 property = "type")
 public abstract class DeviceInformation {
 	@XmlElement
-	@Schema(example = "0", required = true, description = "The id of the device", accessMode=AccessMode.READ_ONLY)
+	@Schema(example = "0", required = true, description = "The id of the device")
 	@DatabaseField(id=true)
 	public int ID;
 
 	@XmlElement
-	@Schema(example = "The name", required = false, description = "The name", accessMode=AccessMode.READ_ONLY)
+	@Schema(example = "The name", required = false, description = "The name")
 	@DatabaseField
 	public String name;
 	
 	@XmlElement
-	@Schema(required = true, description = "The state of the device", accessMode=AccessMode.READ_ONLY)
+	@Schema(example = "The model", required = false, description = "The model")
+	@DatabaseField
+	public String model;
+	
+	@XmlElement
+	@Schema(required = true, description = "The state of the device")
 	@DatabaseField
 	public volatile DeviceState state;
 
 	@XmlElement
-	@Schema(required = true, description = "The battery level (from 0 to 100 percent or -1 if unknown)", accessMode=AccessMode.READ_ONLY)
+	@Schema(required = true, description = "The battery level (from 0 to 100 percent or -1 if unknown)")
 	public short batteryLevel = -1;
 
 	@DatabaseField
-	@Schema(required = false, description = "Who is using the device at the moment", accessMode=AccessMode.READ_ONLY)
+	@Schema(required = false, description = "Who is using the device at the moment")
 	public String reservedBy;
 
 	@DatabaseField
@@ -59,6 +64,11 @@ public abstract class DeviceInformation {
 
 	@Schema(required = true, description = "Type", example="AndroidDeviceRequirements", accessMode=AccessMode.READ_ONLY)
 	public String type;
+	
+	// This field should not be persisted. it is set by the controller when it is forwarded
+	@XmlElement
+	@Schema(example = "10.11.12.13", required = false, description = "The hostname of the server this device is connected to.")
+	public String managerHostname;
 	
 	public DeviceInformation(String type) {
 		this.type = type;

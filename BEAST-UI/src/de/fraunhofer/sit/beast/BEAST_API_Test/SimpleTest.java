@@ -43,7 +43,7 @@ public class SimpleTest
         
         List<DeviceInformation> devices = devAPI.getDevices(new AndroidDeviceRequirements());
         System.out.println(devices);
-        devAPI.releaseAllDevices(); 
+        devAPI.releaseAllDevices(true); 
         DeviceInformation reserved = devAPI.reserveDevice(new AndroidDeviceRequirements());
         List<AbstractApp> appsInstalled = appsAPI.getInstalledApps(reserved.getID());
         System.out.println(appsInstalled);
@@ -59,7 +59,7 @@ public class SimpleTest
         System.out.println(envAPI.listStates(reserved.getID()));
         inputAPI.typeText(reserved.getID(), "Test");
         launchIntent(inputAPI, reserved.getID());
-        devAPI.releaseDevice(reserved.getID());
+        devAPI.releaseDevice(reserved.getID(), true);
     }
 
 	private static void launchIntent(InputApi inputAPI, int id) throws ApiException {

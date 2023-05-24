@@ -1,6 +1,10 @@
 package de.fraunhofer.sit.beast.internal.utils;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.regex.Pattern;
+
+import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
 
 public class MainUtils {
     private static final Pattern EscapePattern = Pattern.compile(
@@ -33,6 +37,16 @@ public class MainUtils {
 
 	public static String escapeCommand(String command) {
 		return command;
+	}
+	
+	
+	private static String publicHostname;
+	public static String getHostName(){
+		return publicHostname;
+	}
+
+	public static void setPublicHostname(String localAddr) {
+		publicHostname = localAddr;
 	}
 
 }

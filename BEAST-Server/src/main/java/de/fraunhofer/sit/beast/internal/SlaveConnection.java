@@ -1,9 +1,13 @@
 package de.fraunhofer.sit.beast.internal;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,12 +15,11 @@ import java.net.URLConnection;
 import java.sql.Time;
 import java.util.Enumeration;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.io.IOUtils;
 
 import de.fraunhofer.sit.beast.applications.Main;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public class SlaveConnection {
 	@Override
@@ -58,6 +61,10 @@ public class SlaveConnection {
 		this.baseUrl = url;
 		this.startRange = startRange;
 		this.endRange = endRange;
+	}
+
+	public URL getBaseUrl() {
+		return baseUrl;
 	}
 
 	private String getStringResponse(String file) throws IOException {
@@ -106,9 +113,11 @@ public class SlaveConnection {
 	public HttpURLConnection forward(String target, HttpServletRequest request, OutputStream output,
 			HttpServletResponse response) throws IOException {
 		String s = request.getQueryString() != null ? "?" + request.getQueryString() : "";
-		HttpURLConnection urlConnection = (HttpURLConnection) getURL(target + s).openConnection();
+		URL u = getURL(target + s);
+		HttpURLConnection urlConnection = (HttpURLConnection) u.openConnection();
 		urlConnection.setUseCaches(false);
 		urlConnection.setRequestMethod(request.getMethod());
+		long l = -1;
 		Enumeration<String> it = request.getHeaderNames();
 		while (it.hasMoreElements()) {
 			String e = it.nextElement();
@@ -116,21 +125,45 @@ public class SlaveConnection {
 			final Enumeration<String> values = request.getHeaders(e);
 			while (values.hasMoreElements()) {
 				final String value = values.nextElement();
+				if (e.equals("Content-Length"))
+					l = Long.parseLong(value);
 				urlConnection.addRequestProperty(e, value);
 			}
 		}
 		urlConnection.setDoOutput(true);
 		urlConnection.setDoInput(true);
-		urlConnection.connect();
-		if (response != null) {
-			response.setContentType(urlConnection.getContentType());
-			response.setContentLengthLong(urlConnection.getContentLengthLong());
+		try {
+			urlConnection.connect();
+		} catch (Exception e) {
+			throw new RuntimeException("Could not connect to " + u, e);
 		}
 		byte[] buf = new byte[BUFFER_SIZE];
-		if (!urlConnection.getRequestMethod().equals("GET"))
-			IOUtils.copyLarge(request.getInputStream(), urlConnection.getOutputStream(), buf);
-		if (urlConnection.getResponseCode() == 200)
-			IOUtils.copyLarge(urlConnection.getInputStream(), output, buf);
+		if (!urlConnection.getRequestMethod().equals("GET")) {
+			OutputStream os = urlConnection.getOutputStream();
+			IOUtils.copyLarge(request.getInputStream(), os, 0, l, buf);
+			os.close();
+		}
+		if (urlConnection.getResponseCode() == 200) {
+			if (response != null) {
+				response.setContentType(urlConnection.getContentType());
+				response.setContentLengthLong(urlConnection.getContentLengthLong());
+			}
+			// if a logcat request is forwarded, make sure to regularly flush
+			if ("Yes".equals(urlConnection.getHeaderField("Stream"))) {
+				BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+				
+				// this will run until the client stops listening.
+				// when that happens, jetty sends a 500 response
+				// the response will never be read anyway
+				while (true) {
+					output.write(br.readLine().getBytes());
+					output.write('\n');
+					output.flush();
+				}
+			} else {
+				IOUtils.copyLarge(urlConnection.getInputStream(), output,buf);
+			}
+		}
 		else {
 			InputStream error = urlConnection.getErrorStream();
 			if (error != null)
@@ -142,7 +175,7 @@ public class SlaveConnection {
 	public byte[] forward(String target, HttpServletRequest request) throws IOException, HttpCodeException {
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		HttpURLConnection c = forward(target, request, output, null);
-		if (c.getResponseCode() != 200)
+		if (c.getResponseCode() != 200 && c.getResponseCode() != 204)
 			throw new HttpCodeException(c.getResponseCode(), new String(output.toByteArray(), "UTF-8"));
 		return output.toByteArray();
 	}

@@ -1,9 +1,11 @@
 package de.fraunhofer.sit.beast.internal.android;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.sql.SQLException;
@@ -12,16 +14,24 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.io.input.CharSequenceInputStream;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.CollectingOutputReceiver;
@@ -31,9 +41,14 @@ import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.RawImage;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.logcat.LogCatHeader;
+import com.android.ddmlib.logcat.LogCatListener;
+import com.android.ddmlib.logcat.LogCatMessage;
+import com.android.ddmlib.logcat.LogCatReceiverTask;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ForwardingBlockingDeque;
 
 import de.fraunhofer.sit.beast.api.data.Key;
 import de.fraunhofer.sit.beast.api.data.android.AndroidDeviceInformation;
@@ -45,6 +60,9 @@ import de.fraunhofer.sit.beast.api.data.devices.DeviceState;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
 import de.fraunhofer.sit.beast.internal.AndroidFileDownloader;
+import de.fraunhofer.sit.beast.internal.Config;
+import de.fraunhofer.sit.beast.internal.ConfigBase;
+import de.fraunhofer.sit.beast.internal.LogBuffer;
 import de.fraunhofer.sit.beast.internal.interfaces.IContactListing;
 import de.fraunhofer.sit.beast.internal.interfaces.IFileListing;
 import de.fraunhofer.sit.beast.internal.interfaces.IPortForwardingListing;
@@ -148,17 +166,28 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 	public AndroidDevice(IDevice device) {
 		this.device = device;
 		deviceInformation = new AndroidDeviceInformation(device);
+		try {
+			device.executeShellCommand("svc power stayon false", new NullOutputReceiver());
+		} catch (Exception e) {
+			LOGGER.error("Could not turn screen off", e);
+		}
 	}
 
 	public AndroidDevice(IDevice device, AndroidDeviceInformation info) {
 		this.device = device;
 		this.deviceInformation = info;
+		try {
+			device.executeShellCommand("svc power stayon false", new NullOutputReceiver());
+		} catch (Exception e) {
+			LOGGER.error("Could not turn screen off", e);
+		}
 	}
 
 	@Override
-	public AndroidApp install(File file) {
+	public String install(File file) {
+		
 		try {
-			ProcessManifest manifest = new ProcessManifest(file);
+			ProcessManifest manifest = new ProcessManifest(file); 
 			String packageName;
 			try {
 				packageName = manifest.getPackageName();
@@ -172,7 +201,7 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 			// though it is not indicative of what the user will see.
 			device.installPackage(file.getAbsolutePath(), true, "-g");
 			cacheApps.invalidate(packageName);
-			return getInstalledApp(packageName);
+			return packageName;
 		} catch (Exception e) {
 			throw AndroidUtils.translateAndroidException(e);
 		}
@@ -413,13 +442,15 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 
 	@Override
 	public boolean matchesDeviceRequirements(DeviceRequirements req) {
+		deviceInformation.refresh();
 		if (req.reservedBy != null) {
 			if (!req.reservedBy.equals(getDeviceInfo().reservedBy))
 				return false;
 		}
-		if (req.state != null && req.state != deviceInformation.state)
+		if (req.state != null && req.state != deviceInformation.state && deviceInformation.state != null)
 			return false;
-		deviceInformation.refresh();
+		if (req.excludedIDs != null && Arrays.asList(req.excludedIDs).contains(getDeviceInfo().ID))
+			return false;
 		if (req.minBatteryLevel != -1) {
 			if (deviceInformation.batteryLevel < req.minBatteryLevel)
 				return false;
@@ -449,9 +480,100 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 	@Override
 	public void changeState(DeviceState newState) throws SQLException {
 		deviceInformation.state = newState;
+		if (newState == DeviceState.FREE || newState == DeviceState.PREPARING) {
+			try {
+				device.executeShellCommand("svc power stayon false", new NullOutputReceiver());
+			} catch (Exception e) {
+				LOGGER.error("Could not turn screen off", e);
+			}
+		}
 		if (newState != DeviceState.OCCUPIED)
 			deviceInformation.reservedBy = null;
+		else {
+			//Someone reserved this device. We better make sure that the phone is ready and unlocked.
+			try {
+				//turnScreenOn();
+			} catch (Exception e) {
+				LOGGER.error("An error occurred while turning screen on", e);
+			}
+			try {
+				device.executeShellCommand("svc power stayon usb", new NullOutputReceiver());
+			} catch (Exception e) {
+				LOGGER.error("Could not keep screen on", e);
+			}
+			String pinCode = ConfigBase.getProperties().get("Android.PINCode");
+			if (pinCode != null && !pinCode.isEmpty()) {
+				LOGGER.info("Entering PIN-Code automatically");
+				try {
+					Thread.sleep(1000);
+					boolean locked = isLocked();
+					LOGGER.info("Is locked");
+					if (locked) {
+						device.executeShellCommand("input touchscreen swipe 530 1420 530 320", new NullOutputReceiver());
+						Thread.sleep(1000);
+						device.executeShellCommand("input text " + pinCode, new NullOutputReceiver());
+						Thread.sleep(1000);
+						device.executeShellCommand("input keyevent 66", new NullOutputReceiver());
+						Thread.sleep(1000);
+						locked = isLocked();
+						if (locked) 
+							LOGGER.error("Is still locked: " + device.getName());
+						else
+							LOGGER.info("Is unlocked");
+					} else
+						LOGGER.info("Screen was already unlocked.");
+				} catch (Exception e) {
+					LOGGER.error("Could not input PIN", e);
+				}
+			} else
+				LOGGER.info("Entering PIN-Code disabled");
+		}
 		Database.INSTANCE.updateDevice(deviceInformation);
+	}
+
+	public boolean isLocked()
+			throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException {
+		CollectingOutputReceiver collect = new CollectingOutputReceiver();
+		device.executeShellCommand("dumpsys window", collect);
+		LineIterator it = IOUtils.lineIterator(new StringReader(collect.getOutput()));
+		boolean locked = true;
+		while (it.hasNext()) {
+			String l = it.nextLine();
+			if (l.contains("mDreamingLockscreen"))
+			{
+				locked = false;
+				if (l.contains("mDreamingLockscreen=true"))
+					locked =true;
+				break;
+			}
+		}
+		return locked;
+	}
+
+	private synchronized void turnScreenOn() throws TimeoutException, AdbCommandRejectedException, IOException {
+		deviceInformation.updateLastUsed();
+		final RawImage rawImage = device.getScreenshot();
+		if (rawImage == null) {
+			return;
+		}
+		int IndexInc = rawImage.bpp >> 3;
+		int index = 0;
+		for (int y = 0; y < rawImage.height; y += 2) {
+			for (int x = 0; x < rawImage.width; x += 2) {
+				int value = rawImage.getARGB(index);
+				if (value > -16777210)
+					return;
+				index += IndexInc;
+			}
+		}
+		
+		//Screen is off.
+		keyTyped(Key.KEYCODE_POWER);
+		try {
+			Thread.sleep(500);
+		} catch (InterruptedException e) {
+			LOGGER.warn("Interrupted", e);
+		}
 	}
 
 	@Override
@@ -928,5 +1050,52 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 
 	}
 
+	
+	
+	/**
+	 * A reference to the LogCat receiver Task. It is null until a logcat request is made. At that point, it is initialized and a thread is created. 
+	 * This thread will run forever. LogCatListeners are removed when no longer needed.
+	 */
+	private LogCatReceiverTask logCatReceiver = null;
+	
+	@Override
+	public LogBuffer getDeviceLog(String process) {
+		if (logCatReceiver == null) {
+			LOGGER.debug(String.format("registering logcat receiver for device %s ", getAndroidDevice()));
+			logCatReceiver = new LogCatReceiverTask(getAndroidDevice());
+			String threadName = String.format("LogCat listener for %s ", getAndroidDevice());
+			new Thread(logCatReceiver, threadName).start();
+		}
+		LOGGER.debug(String.format("started streaming logcat messages for process %s on device %s", process, getAndroidDevice()));
+		LogBuffer log = new LogBuffer();
+		LogCatListener logrec = new LogCatListener() {
+			
+			@Override
+			public void log(List<LogCatMessage> msgList) {
+				for (LogCatMessage msg : msgList) {
+					if (log.isClosed()) {
+						logCatReceiver.removeLogCatListener(this);
+						LOGGER.debug(String.format("stopped streaming logcat messages for process %s on device %s", process, getAndroidDevice()));
+						return;
+					}
+					if (process == null || process.equals(msg.getHeader().getAppName())) {
+						LogCatHeader header = msg.getHeader();
+						String appn = header.getAppName();
+						if (appn == null)
+							appn = "UNKNOWN";
+						String s = header.getTimestamp() + ": "
+				                + header.getLogLevel().getPriorityLetter() + "/" + appn + "/"
+				                + header.getTag() + " (" + header.getTid() + "/"
+				                + header.getPid() + "): "
+				                + msg.getMessage();
+						log.writeMessage(s);
+					}
+				}
+			}
+		};
+		log.setListener(logCatReceiver, logrec);
+		logCatReceiver.addLogCatListener(logrec);
+		return log;
+	}
 
 }

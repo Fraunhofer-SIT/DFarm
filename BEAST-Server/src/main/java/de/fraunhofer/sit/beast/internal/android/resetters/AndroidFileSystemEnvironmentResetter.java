@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.j256.ormlite.dao.CloseableIterator;
 import com.j256.ormlite.dao.Dao;
@@ -104,7 +104,11 @@ public class AndroidFileSystemEnvironmentResetter implements IEnvironmentResette
 					LOGGER.info(String.format("Restoring %s: Restore %s", env.name, i.path));
 					IFile f = listing.getFile(i.path);
 					f.getParent().mkdirs();
-					f.upload(i.getFile());
+					try {
+						f.upload(i.getFile());
+					} catch (Exception e) {
+						LOGGER.error("Could not upload" + i.getFile(), e);
+					}
 				}
 			} finally {
 				it.closeQuietly();
@@ -120,18 +124,31 @@ public class AndroidFileSystemEnvironmentResetter implements IEnvironmentResette
 				m = fileMap.remove(d.getFullPath() + "/");
 			if (m == null) {
 				LOGGER.info(String.format("Restoring: Delete %s", d.getFullPath()));
-				d.deleteRecursively();
+				try {
+					d.deleteRecursively();
+				} catch (Exception e) {
+					LOGGER.error("Could not delete " + d, e);
+				}
 				continue;
 			} else {
 				if (!m.isDirectory) {
-					if (!d.isFile())
-						d.deleteRecursively();
+					if (!d.isFile()) {
+						try {
+							d.deleteRecursively();
+						} catch (Exception e) {
+							LOGGER.error("Could not delete " + d, e);
+						}
+					}
 					if (d.exists()) {
 						String md5sum = d.getMD5Sum();
 						if (d.getSize() != m.size || !m.hash.equals(md5sum))
 						{
 							LOGGER.info(String.format("Restoring %s: Restore %s (%s, %d) with (%s, %d)", m.env.name, m.path, md5sum, d.getSize(), m.hash, m.size));
-							d.upload(m.getFile());
+							try {
+								d.upload(m.getFile());
+							} catch (Exception e) {
+								LOGGER.error("Could not upload " + d, e);
+							}
 						}
 					}
 				}

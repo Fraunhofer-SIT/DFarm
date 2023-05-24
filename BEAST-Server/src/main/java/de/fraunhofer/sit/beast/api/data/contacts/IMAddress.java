@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import de.fraunhofer.sit.beast.api.data.exceptions.ExceptionProvider;
 import de.fraunhofer.sit.beast.internal.android.AndroidUtils;
@@ -13,7 +14,7 @@ public class IMAddress implements IDataItem {
 
 	public String address;
 	public String protocol;
-	private static final Logger logger = Logger.getLogger(IMAddress.class);
+	private static final Logger logger = LogManager.getLogger(IMAddress.class);
 	
 	private static final Map<Integer, String> PROTOCOLS = new HashMap<>();
 	static {
