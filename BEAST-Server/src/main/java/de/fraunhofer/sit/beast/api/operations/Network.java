@@ -1,22 +1,6 @@
 package de.fraunhofer.sit.beast.api.operations;
 
-import java.util.Collection;
-
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
-
 import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
-import de.fraunhofer.sit.beast.api.data.network.ports.ForwardingDirection;
-import de.fraunhofer.sit.beast.api.data.network.ports.PortForwarding;
-import de.fraunhofer.sit.beast.api.data.network.ports.Protocol;
 import de.fraunhofer.sit.beast.internal.DeviceManager;
 import de.fraunhofer.sit.beast.internal.interfaces.IDevice;
 import de.fraunhofer.sit.beast.internal.interfaces.ISniffing;
@@ -25,7 +9,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -34,6 +17,12 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 
 @Path("/api/devices/{devid}/network/")
 @Produces(MediaType.APPLICATION_JSON)

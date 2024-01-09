@@ -35,7 +35,7 @@ public class AndroidPortForwardingListing implements IPortForwardingListing {
 	@Override
 	public Collection<PortForwarding> listPortForwardings() {
 		if (AndroidDeviceManager.MANAGER == null)
-			//Still initializing
+			// Still initializing
 			return Collections.emptyList();
 		String output = runADBCommand("-s", device.getAndroidDevice().getSerialNumber(), "forward", "--list");
 		List<PortForwarding> list = new ArrayList<>();
@@ -184,7 +184,7 @@ public class AndroidPortForwardingListing implements IPortForwardingListing {
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
-			return IOUtils.toString(p.getInputStream());
+			return IOUtils.toString(p.getInputStream(), "UTF-8");
 		} catch (Exception e) {
 			Database.logError(e);
 			throw new RuntimeException(e);

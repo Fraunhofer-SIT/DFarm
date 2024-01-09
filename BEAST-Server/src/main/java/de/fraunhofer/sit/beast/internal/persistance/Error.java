@@ -6,8 +6,6 @@ import java.util.UUID;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
-import de.fraunhofer.sit.beast.internal.interfaces.IDevice;
-
 @DatabaseTable(tableName = "Errors")
 public class Error {
 	@DatabaseField(columnName = "device_id")

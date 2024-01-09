@@ -1,46 +1,21 @@
 package de.fraunhofer.sit.beast.api.operations;
 
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.MultivaluedMap;
-import jakarta.ws.rs.core.Response;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jboss.resteasy.plugins.providers.multipart.InputPart;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
 
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IShellOutputReceiver;
-import com.android.ddmlib.NullOutputReceiver;
 import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.TimeoutException;
 import com.google.common.base.Charsets;
 
 import de.fraunhofer.sit.beast.api.data.Key;
-import de.fraunhofer.sit.beast.api.data.UploadedFile;
 import de.fraunhofer.sit.beast.api.data.android.Intent;
 import de.fraunhofer.sit.beast.api.data.android.MonkeyOptions;
-import de.fraunhofer.sit.beast.api.data.contacts.IMAddress;
-import de.fraunhofer.sit.beast.api.data.devices.DeviceInformation;
-import de.fraunhofer.sit.beast.api.data.devices.DeviceRequirements;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
 import de.fraunhofer.sit.beast.api.data.exceptions.AccessDeniedException;
@@ -65,6 +40,14 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 
 @Path("/api/devices/{devid}/input")
 @Produces(MediaType.APPLICATION_JSON)
@@ -75,18 +58,15 @@ public class Input {
 
 	@Operation(method = "GET", summary = "Taps on screen", description = "Taps on screen")
 	@Path("/tap")
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = AccessDeniedException.class))),
-			@ApiResponse(responseCode = "404", description = "Device not found", content = @Content(schema = @Schema(implementation = DeviceNotFoundException.class)))})
+			@ApiResponse(responseCode = "404", description = "Device not found", content = @Content(schema = @Schema(implementation = DeviceNotFoundException.class))) })
 	@GET
-	public void tap(
-			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
+	public void tap(@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
 			@QueryParam("x") @Parameter(name = "x", in = ParameterIn.QUERY, description = "The x coordinate", required = true) int x,
-			@QueryParam("y") @Parameter(name = "y", in = ParameterIn.QUERY, description = "The y coordinate", required = true) int y
-			)  {
+			@QueryParam("y") @Parameter(name = "y", in = ParameterIn.QUERY, description = "The y coordinate", required = true) int y) {
 		IDevice dev = DeviceManager.DEVICE_MANAGER.getDeviceByIdChecked(apiKey, devid);
 		dev.tap(x, y);
 
@@ -94,11 +74,10 @@ public class Input {
 
 	@Operation(method = "GET", summary = "Swipes on screen", description = "Swipes on screen")
 	@Path("/swipe")
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = AccessDeniedException.class))),
-			@ApiResponse(responseCode = "404", description = "Device not found", content = @Content(schema = @Schema(implementation = DeviceNotFoundException.class)))})
+			@ApiResponse(responseCode = "404", description = "Device not found", content = @Content(schema = @Schema(implementation = DeviceNotFoundException.class))) })
 	@GET
 	public void swipe(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
@@ -107,25 +86,22 @@ public class Input {
 			@QueryParam("y1") @Parameter(name = "y1", in = ParameterIn.QUERY, description = "The first y coordinate", required = true) int y1,
 			@QueryParam("x2") @Parameter(name = "x2", in = ParameterIn.QUERY, description = "The second x coordinate", required = true) int x2,
 			@QueryParam("y2") @Parameter(name = "y2", in = ParameterIn.QUERY, description = "The second y coordinate", required = true) int y2,
-			@QueryParam("durationMs") @Parameter(name = "durationMs", in = ParameterIn.QUERY, description = "The duration in ms", required = false, example="10") int durationMs
-			)  {
+			@QueryParam("durationMs") @Parameter(name = "durationMs", in = ParameterIn.QUERY, description = "The duration in ms", required = false, example = "10") int durationMs) {
 		IDevice dev = DeviceManager.DEVICE_MANAGER.getDeviceByIdChecked(apiKey, devid);
 		dev.swipe(x1, y1, x2, y2, durationMs);
 	}
 
 	@Operation(method = "GET", summary = "Key event", description = "A key event")
 	@Path("/keyevent")
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK"),
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "OK"),
 			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = AccessDeniedException.class))),
-			@ApiResponse(responseCode = "404", description = "Device not found", content = @Content(schema = @Schema(implementation = DeviceNotFoundException.class)))})
+			@ApiResponse(responseCode = "404", description = "Device not found", content = @Content(schema = @Schema(implementation = DeviceNotFoundException.class))) })
 	@GET
 	public void keyTyped(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@QueryParam("key") @Parameter(name = "key", in = ParameterIn.QUERY, description = "The key", required = true, schema=@Schema(implementation=Key.class)) Key key)
-			 {
+			@QueryParam("key") @Parameter(name = "key", in = ParameterIn.QUERY, description = "The key", required = true, schema = @Schema(implementation = Key.class)) Key key) {
 		IDevice dev = DeviceManager.DEVICE_MANAGER.getDeviceByIdChecked(apiKey, devid);
 		dev.keyTyped(key);
 	}
@@ -137,12 +113,11 @@ public class Input {
 			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AbstractApp.class))),
 			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "403", description = "Access denied", content = @Content(schema = @Schema(implementation = AccessDeniedException.class))),
-			@ApiResponse(responseCode = "404", description = "Device not found", content = @Content(schema = @Schema(implementation = DeviceNotFoundException.class)))})	
+			@ApiResponse(responseCode = "404", description = "Device not found", content = @Content(schema = @Schema(implementation = DeviceNotFoundException.class))) })
 	public void typeText(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@RequestBody(description = "The text", required = true) String text
-			)  {
+			@RequestBody(description = "The text", required = true) String text) {
 		if (text.startsWith("\"") && text.endsWith("\""))
 			text = text.substring(1, text.length() - 1);
 		if (text.isEmpty())
@@ -152,13 +127,12 @@ public class Input {
 
 	}
 
-
 	@POST
-    @Consumes("application/json")
+	@Consumes("application/json")
 	@Path("/android/startMonkey")
 	@Operation(method = "POST", summary = "Starts the monkey application exerciser", description = "Starts the monkey application exerciser, which randomly executes inputs on the device. Android only")
 	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "OK", content = @Content( schema =  @Schema(implementation = String.class))),
+			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = String.class))),
 			@ApiResponse(responseCode = "401", description = "Not an android device", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "500", description = "Internal error", content = @Content(schema = @Schema(implementation = APIException.class))),
 			@ApiResponse(responseCode = "510", description = "No device available", content = @Content(schema = @Schema(implementation = DeviceReservationFailedException.class))), })
@@ -166,8 +140,9 @@ public class Input {
 	public String startMonkey(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@RequestBody(description = "The options of monkey", required = true) MonkeyOptions monkeyOptions) throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException, IllegalArgumentException, IllegalAccessException
-	{
+			@RequestBody(description = "The options of monkey", required = true) MonkeyOptions monkeyOptions)
+			throws TimeoutException, AdbCommandRejectedException, ShellCommandUnresponsiveException, IOException,
+			IllegalArgumentException, IllegalAccessException {
 		String s = monkeyOptions.getCommandSyntax();
 		logger.info("Starting monkey: " + s);
 		System.out.println("Starting monkey: " + s);
@@ -198,14 +173,14 @@ public class Input {
 						public boolean isCancelled() {
 							return false;
 						}
-						
+
 					}, 1, TimeUnit.DAYS);
 					finished.set(true);
 				} catch (Exception e) {
 					logger.error("An error occurred while running " + s, e);
 				}
 			}
-			
+
 		});
 		thr.setDaemon(true);
 		thr.start();
@@ -222,9 +197,9 @@ public class Input {
 		}
 		return sb.toString();
 	}
-	
+
 	@POST
-    @Consumes("application/json")
+	@Consumes("application/json")
 	@Path("/android/startActivity")
 	@Operation(method = "POST", summary = "Sends an intent to the system to start an activity", description = "Sends an intent to the system to start an activity. Android only")
 	@ApiResponses(value = {
@@ -237,16 +212,14 @@ public class Input {
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
 			@RequestBody(description = "The intent ot send", required = false) Intent intent,
-			@QueryParam("forceStopBefore") @Parameter(name = "forceStopBefore", in = ParameterIn.QUERY, description = "Whether to force stop the application before", required = false, example="false") boolean forceStopBefore,
-			@QueryParam("waitForDebugger") @Parameter(name = "waitForDebugger", in = ParameterIn.QUERY, description = "Whether to wait for a debugger", required = false, example="false") boolean waitForDebugger
-			)
-			  {
+			@QueryParam("forceStopBefore") @Parameter(name = "forceStopBefore", in = ParameterIn.QUERY, description = "Whether to force stop the application before", required = false, example = "false") boolean forceStopBefore,
+			@QueryParam("waitForDebugger") @Parameter(name = "waitForDebugger", in = ParameterIn.QUERY, description = "Whether to wait for a debugger", required = false, example = "false") boolean waitForDebugger) {
 		AndroidDevice d = getAndroidDevice(apiKey, devid);
 		d.startActivity(intent, forceStopBefore, waitForDebugger);
 	}
-	
+
 	@POST
-    @Consumes("application/json")
+	@Consumes("application/json")
 	@Path("/android/startService")
 	@Operation(method = "POST", summary = "Sends an intent to the system to start a service", description = "Sends an intent to the system to start a service. Android only")
 	@ApiResponses(value = {
@@ -258,14 +231,13 @@ public class Input {
 	public void startService(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@RequestBody(description = "The intent ot send", required = false) Intent intent
-			) {
+			@RequestBody(description = "The intent ot send", required = false) Intent intent) {
 		AndroidDevice d = getAndroidDevice(apiKey, devid);
 		d.startService(intent);
 	}
-	
+
 	@POST
-    @Consumes("application/json")
+	@Consumes("application/json")
 	@Path("/android/startForegroundService")
 	@Operation(method = "POST", summary = "Sends an intent to the system to start a service in foreground", description = "Sends an intent to the system to start a service in foreground. Android only")
 	@ApiResponses(value = {
@@ -277,14 +249,13 @@ public class Input {
 	public void startForegroundService(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@RequestBody(description = "The intent ot send", required = false) Intent intent
-			) {
+			@RequestBody(description = "The intent ot send", required = false) Intent intent) {
 		AndroidDevice d = getAndroidDevice(apiKey, devid);
 		d.startForegroundService(intent);
 	}
 
 	@POST
-    @Consumes("application/json")
+	@Consumes("application/json")
 	@Path("/android/stopService")
 	@Operation(method = "POST", summary = "Sends an intent to the system to stop a service", description = "Sends an intent to the system to stop a service. Android only")
 	@ApiResponses(value = {
@@ -296,14 +267,13 @@ public class Input {
 	public void stopService(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@RequestBody(description = "The intent ot send", required = false) Intent intent
-			) {
+			@RequestBody(description = "The intent ot send", required = false) Intent intent) {
 		AndroidDevice d = getAndroidDevice(apiKey, devid);
 		d.stopService(intent);
 	}
 
 	@POST
-    @Consumes("application/json")
+	@Consumes("application/json")
 	@Path("/android/broadcast")
 	@Operation(method = "POST", summary = "Sends an intent to the system to send a message to broadcast receivers", description = "Sends an intent to the system to send a message to broadcast receivers. Android only")
 	@ApiResponses(value = {
@@ -315,9 +285,8 @@ public class Input {
 	public void broadcast(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@RequestBody(description = "The intent ot send", required = false) Intent intent, 
-			@QueryParam("receiverPermission") @Parameter(name = "receiverPermission", in = ParameterIn.QUERY, description = "The permission a receiver needs to have", required = false, example="") String receiverPermission
-			) {
+			@RequestBody(description = "The intent ot send", required = false) Intent intent,
+			@QueryParam("receiverPermission") @Parameter(name = "receiverPermission", in = ParameterIn.QUERY, description = "The permission a receiver needs to have", required = false, example = "") String receiverPermission) {
 		AndroidDevice d = getAndroidDevice(apiKey, devid);
 		d.broadcast(intent, receiverPermission);
 	}
@@ -325,7 +294,8 @@ public class Input {
 	private AndroidDevice getAndroidDevice(String apiKey, int devid) {
 		IDevice dev = DeviceManager.DEVICE_MANAGER.getDeviceByIdChecked(apiKey, devid);
 		if (!(dev instanceof AndroidDevice))
-			throw new APIExceptionWrapper(new APIException(401, String.format("Not an Android device, but %s", dev.getClass().getName())));
+			throw new APIExceptionWrapper(
+					new APIException(401, String.format("Not an Android device, but %s", dev.getClass().getName())));
 		AndroidDevice d = (AndroidDevice) dev;
 		return d;
 	}

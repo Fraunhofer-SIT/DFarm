@@ -1,11 +1,9 @@
 package de.fraunhofer.sit.beast.internal.android;
 
-import soot.Scene;
-
 public class AndroidPermission {
 	public String name;
 	public boolean granted;
-	
+
 	public AndroidPermission(String name) {
 		this.name = name;
 	}
@@ -27,7 +25,7 @@ public class AndroidPermission {
 		}
 		return perm;
 	}
-	
+
 	@Override
 	public String toString() {
 		return name + (granted ? " Granted" : "Not granted");

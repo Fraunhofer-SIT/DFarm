@@ -1,15 +1,12 @@
 package de.fraunhofer.sit.beast.internal.android;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayDeque;
@@ -19,17 +16,12 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.commons.io.input.CharSequenceInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,7 +40,6 @@ import com.android.ddmlib.logcat.LogCatReceiverTask;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.ForwardingBlockingDeque;
 
 import de.fraunhofer.sit.beast.api.data.Key;
 import de.fraunhofer.sit.beast.api.data.android.AndroidDeviceInformation;
@@ -60,7 +51,6 @@ import de.fraunhofer.sit.beast.api.data.devices.DeviceState;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
 import de.fraunhofer.sit.beast.internal.AndroidFileDownloader;
-import de.fraunhofer.sit.beast.internal.Config;
 import de.fraunhofer.sit.beast.internal.ConfigBase;
 import de.fraunhofer.sit.beast.internal.LogBuffer;
 import de.fraunhofer.sit.beast.internal.interfaces.IContactListing;
@@ -185,9 +175,9 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 
 	@Override
 	public String install(File file) {
-		
+
 		try {
-			ProcessManifest manifest = new ProcessManifest(file); 
+			ProcessManifest manifest = new ProcessManifest(file);
 			String packageName;
 			try {
 				packageName = manifest.getPackageName();
@@ -320,7 +310,7 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 							item.installPermissions.add(AndroidPermission.parsePermission(entry));
 						}
 					}
-					
+
 					if (line.contains("runtime permissions:")) {
 						List<String> entries = readList(readerPackageInfo);
 						item.runtimePermissions = new ArrayList<AndroidPermission>(entries.size());
@@ -357,11 +347,9 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 						final String name = line.substring(0, sepPos);
 						final String value = line.substring(sepPos + 1);
 
-						
 						if (name.equalsIgnoreCase(PKG_FLAGS)) {
 							String[] flagList = value.substring(1, value.length() - 1).trim().split(" ");
 							for (String s : flagList) {
-								int val = 0;
 								switch (s) {
 								case "SYSTEM":
 									item.systemApp = true;
@@ -490,9 +478,10 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 		if (newState != DeviceState.OCCUPIED)
 			deviceInformation.reservedBy = null;
 		else {
-			//Someone reserved this device. We better make sure that the phone is ready and unlocked.
+			// Someone reserved this device. We better make sure that the phone is ready and
+			// unlocked.
 			try {
-				//turnScreenOn();
+				// turnScreenOn();
 			} catch (Exception e) {
 				LOGGER.error("An error occurred while turning screen on", e);
 			}
@@ -509,14 +498,15 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 					boolean locked = isLocked();
 					LOGGER.info("Is locked");
 					if (locked) {
-						device.executeShellCommand("input touchscreen swipe 530 1420 530 320", new NullOutputReceiver());
+						device.executeShellCommand("input touchscreen swipe 530 1420 530 320",
+								new NullOutputReceiver());
 						Thread.sleep(1000);
 						device.executeShellCommand("input text " + pinCode, new NullOutputReceiver());
 						Thread.sleep(1000);
 						device.executeShellCommand("input keyevent 66", new NullOutputReceiver());
 						Thread.sleep(1000);
 						locked = isLocked();
-						if (locked) 
+						if (locked)
 							LOGGER.error("Is still locked: " + device.getName());
 						else
 							LOGGER.info("Is unlocked");
@@ -539,11 +529,10 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 		boolean locked = true;
 		while (it.hasNext()) {
 			String l = it.nextLine();
-			if (l.contains("mDreamingLockscreen"))
-			{
+			if (l.contains("mDreamingLockscreen")) {
 				locked = false;
 				if (l.contains("mDreamingLockscreen=true"))
-					locked =true;
+					locked = true;
 				break;
 			}
 		}
@@ -566,8 +555,8 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 				index += IndexInc;
 			}
 		}
-		
-		//Screen is off.
+
+		// Screen is off.
 		keyTyped(Key.KEYCODE_POWER);
 		try {
 			Thread.sleep(500);
@@ -1050,14 +1039,13 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 
 	}
 
-	
-	
 	/**
-	 * A reference to the LogCat receiver Task. It is null until a logcat request is made. At that point, it is initialized and a thread is created. 
-	 * This thread will run forever. LogCatListeners are removed when no longer needed.
+	 * A reference to the LogCat receiver Task. It is null until a logcat request is
+	 * made. At that point, it is initialized and a thread is created. This thread
+	 * will run forever. LogCatListeners are removed when no longer needed.
 	 */
 	private LogCatReceiverTask logCatReceiver = null;
-	
+
 	@Override
 	public LogBuffer getDeviceLog(String process) {
 		if (logCatReceiver == null) {
@@ -1066,16 +1054,18 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 			String threadName = String.format("LogCat listener for %s ", getAndroidDevice());
 			new Thread(logCatReceiver, threadName).start();
 		}
-		LOGGER.debug(String.format("started streaming logcat messages for process %s on device %s", process, getAndroidDevice()));
+		LOGGER.debug(String.format("started streaming logcat messages for process %s on device %s", process,
+				getAndroidDevice()));
 		LogBuffer log = new LogBuffer();
 		LogCatListener logrec = new LogCatListener() {
-			
+
 			@Override
 			public void log(List<LogCatMessage> msgList) {
 				for (LogCatMessage msg : msgList) {
 					if (log.isClosed()) {
 						logCatReceiver.removeLogCatListener(this);
-						LOGGER.debug(String.format("stopped streaming logcat messages for process %s on device %s", process, getAndroidDevice()));
+						LOGGER.debug(String.format("stopped streaming logcat messages for process %s on device %s",
+								process, getAndroidDevice()));
 						return;
 					}
 					if (process == null || process.equals(msg.getHeader().getAppName())) {
@@ -1083,11 +1073,9 @@ public class AndroidDevice implements de.fraunhofer.sit.beast.internal.interface
 						String appn = header.getAppName();
 						if (appn == null)
 							appn = "UNKNOWN";
-						String s = header.getTimestamp() + ": "
-				                + header.getLogLevel().getPriorityLetter() + "/" + appn + "/"
-				                + header.getTag() + " (" + header.getTid() + "/"
-				                + header.getPid() + "): "
-				                + msg.getMessage();
+						String s = header.getTimestamp() + ": " + header.getLogLevel().getPriorityLetter() + "/" + appn
+								+ "/" + header.getTag() + " (" + header.getTid() + "/" + header.getPid() + "): "
+								+ msg.getMessage();
 						log.writeMessage(s);
 					}
 				}

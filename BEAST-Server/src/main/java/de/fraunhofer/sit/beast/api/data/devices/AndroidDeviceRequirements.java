@@ -1,7 +1,5 @@
 package de.fraunhofer.sit.beast.api.data.devices;
 
-import javax.xml.bind.annotation.XmlElement;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "Android device requirements")

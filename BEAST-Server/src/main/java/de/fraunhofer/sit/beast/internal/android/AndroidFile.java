@@ -6,29 +6,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.commons.io.IOUtils;
-
-import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.CollectingOutputReceiver;
 import com.android.ddmlib.FileListingService;
 import com.android.ddmlib.FileListingService.FileEntry;
 import com.android.ddmlib.IDevice;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
 import com.android.ddmlib.SyncException;
-import com.android.ddmlib.TimeoutException;
 import com.google.common.base.Joiner;
 
 import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
@@ -50,7 +42,7 @@ public class AndroidFile implements IFile {
 		this.path = entry.getPathSegments();
 	}
 
-	public AndroidFile(IDevice device, String path)  {
+	public AndroidFile(IDevice device, String path) {
 		this.device = device;
 		FileEntry entry = searchEntry(device, path);
 		this.entry = entry;
@@ -78,8 +70,7 @@ public class AndroidFile implements IFile {
 	private FileEntry searchEntry(IDevice device, String[] path) {
 		FileEntry root = device.getFileListingService().getRoot();
 		FileEntry entry = root;
-		if (path.length > 0)
-		{
+		if (path.length > 0) {
 			for (String s : path) {
 				FileEntry c = entry.findChild(s);
 				if (c == null) {
@@ -93,7 +84,7 @@ public class AndroidFile implements IFile {
 					} catch (Exception e) {
 						throw AndroidUtils.translateAndroidException(e);
 					}
-	
+
 				}
 				entry = c;
 				if (c == null)
@@ -111,14 +102,14 @@ public class AndroidFile implements IFile {
 	}
 
 	@Override
-	public boolean isDirectory()  {
+	public boolean isDirectory() {
 		if (entry == null)
 			throw new APIExceptionWrapper(new FileNotFoundException(getFullPath()));
 		return entry.isDirectory();
 	}
 
 	@Override
-	public boolean isFile()  {
+	public boolean isFile() {
 		if (entry == null)
 			throw new APIExceptionWrapper(new FileNotFoundException(getFullPath()));
 		return !entry.isDirectory();
@@ -135,7 +126,7 @@ public class AndroidFile implements IFile {
 	}
 
 	@Override
-	public InputStream openRead()  {
+	public InputStream openRead() {
 		File file = TempUtils.createFile();
 		try {
 			download(file);
@@ -146,7 +137,7 @@ public class AndroidFile implements IFile {
 	}
 
 	@Override
-	public void download(File file)  {
+	public void download(File file) {
 		try {
 			device.pullFile(getFullPath(), file.getAbsolutePath());
 		} catch (SyncException e) {
@@ -157,11 +148,12 @@ public class AndroidFile implements IFile {
 	}
 
 	public void createSymbolicLink(AndroidFile source) {
-		executeShellCommandThrowOnOutput("ln -s \"" + MainUtils.escapePath(source.path) + "\" \"" + MainUtils.escapePath(path) + "\"");		
+		executeShellCommandThrowOnOutput(
+				"ln -s \"" + MainUtils.escapePath(source.path) + "\" \"" + MainUtils.escapePath(path) + "\"");
 	}
 
 	@Override
-	public void upload(File file)  {
+	public void upload(File file) {
 		try {
 			device.pushFile(file.getAbsolutePath(), getFullPath());
 		} catch (SyncException e) {
@@ -172,7 +164,7 @@ public class AndroidFile implements IFile {
 	}
 
 	@Override
-	public OutputStream openWrite()  {
+	public OutputStream openWrite() {
 		File file = TempUtils.createFile();
 		FileOutputStream outputStream = null;
 		try {
@@ -207,11 +199,12 @@ public class AndroidFile implements IFile {
 			};
 		} catch (Exception e) {
 			throw AndroidUtils.translateAndroidException(e);
-		} 
+		}
 	}
 
 	protected void move(AndroidFile destFilename) {
-		executeShellCommandThrowOnOutput("mv \"" + MainUtils.escapePath(path) + "\" \"" + MainUtils.escapePath(destFilename.path) + "\"");
+		executeShellCommandThrowOnOutput(
+				"mv \"" + MainUtils.escapePath(path) + "\" \"" + MainUtils.escapePath(destFilename.path) + "\"");
 	}
 
 	public String getFullPath() {
@@ -233,31 +226,32 @@ public class AndroidFile implements IFile {
 	}
 
 	@Override
-	public void deleteRecursively()  {
+	public void deleteRecursively() {
 		executeShellCommandThrowOnOutput("rm -rf \"" + MainUtils.escapePath(path) + "\"");
 		entry = null;
 	}
 
-	public void executeShellCommandThrowOnOutput(String cmd)  {
+	public void executeShellCommandThrowOnOutput(String cmd) {
 		CollectingOutputReceiver output = new CollectingOutputReceiver();
 		try {
 			device.executeShellCommand(cmd, output);
 			String o = output.getOutput();
 			if (!o.isEmpty())
-				throw new APIExceptionWrapper(new APIException(500, o, String.format("Could not perform operation %s: %s", cmd, o)));
+				throw new APIExceptionWrapper(
+						new APIException(500, o, String.format("Could not perform operation %s: %s", cmd, o)));
 		} catch (Exception e) {
 			throw AndroidUtils.translateAndroidException(e);
 		}
 	}
 
 	@Override
-	public void mkdirs()  {
+	public void mkdirs() {
 		executeShellCommandThrowOnOutput("mkdir -p \"" + MainUtils.escapePath(path) + "\"");
 		entry = searchEntry(device, path);
 	}
 
 	@Override
-	public List<IFile> listFiles()  {
+	public List<IFile> listFiles() {
 		try {
 			List<IFile> res = null;
 			for (FileEntry i : device.getFileListingService().getChildrenSync(entry)) {
@@ -284,7 +278,7 @@ public class AndroidFile implements IFile {
 	public String[] getPathParts() {
 		return path;
 	}
-	
+
 	public Date getLastModified() {
 		if (entry == null)
 			throw new APIExceptionWrapper(new FileNotFoundException(getFullPath()));

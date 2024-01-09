@@ -1,32 +1,13 @@
 package de.fraunhofer.sit.beast.api.operations;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.StreamingOutput;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.io.Connection;
-import org.eclipse.jetty.io.Connection.Listener;
-import org.eclipse.jetty.server.HttpConnection;
 import org.jboss.resteasy.annotations.jaxrs.QueryParam;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 
@@ -39,7 +20,6 @@ import de.fraunhofer.sit.beast.api.data.exceptions.AccessDeniedException;
 import de.fraunhofer.sit.beast.api.data.exceptions.DeviceReservationFailedException;
 import de.fraunhofer.sit.beast.internal.DeviceManager;
 import de.fraunhofer.sit.beast.internal.LogBuffer;
-import de.fraunhofer.sit.beast.internal.android.AndroidDeviceManager;
 import de.fraunhofer.sit.beast.internal.interfaces.IDevice;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,6 +36,17 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.StreamingOutput;
 
 @Path("/api/devices/")
 @Produces(MediaType.APPLICATION_JSON)

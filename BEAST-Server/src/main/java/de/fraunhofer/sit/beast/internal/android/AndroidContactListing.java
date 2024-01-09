@@ -6,10 +6,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-
-import jakarta.ws.rs.NotFoundException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
@@ -23,16 +20,15 @@ import de.fraunhofer.sit.beast.api.data.contacts.Note;
 import de.fraunhofer.sit.beast.api.data.contacts.PhoneNumber;
 import de.fraunhofer.sit.beast.api.data.contacts.PostalAddress;
 import de.fraunhofer.sit.beast.api.data.contacts.Website;
-import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
-import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
 import de.fraunhofer.sit.beast.internal.interfaces.IContactListing;
 import de.fraunhofer.sit.beast.internal.persistance.Database;
+import jakarta.ws.rs.NotFoundException;
 
 public class AndroidContactListing implements IContactListing {
 	private static final Logger logger = LogManager.getLogger(AndroidContactListing.class);
 
 	private AndroidDevice device;
-	
+
 	private static final String GET_CONTACTS = "content query --uri content://com.android.contacts/data";
 	private static final String GET_RAW_CONTACTS = "content query --uri content://com.android.contacts/raw_contacts";
 	private static final String DELETE_CONTACT_COMPLETELY = "content delete --uri content://com.android.contacts/data --where contact_id=%s";
@@ -48,8 +44,7 @@ public class AndroidContactListing implements IContactListing {
 		String rawContacts = device.executeOnDevice(GET_RAW_CONTACTS);
 		Map<Integer, Contact> result = new HashMap<>();
 		try {
-			contact:
-			for (String contact : IOUtils.readLines(new StringReader(rawContacts))) {
+			contact: for (String contact : IOUtils.readLines(new StringReader(rawContacts))) {
 				Contact c = new Contact();
 				String[] split = contact.split(", ");
 				int id = -1;
@@ -104,41 +99,41 @@ public class AndroidContactListing implements IContactListing {
 					obj = new EmailAddress();
 					if (contact.emailAddresses == null)
 						contact.emailAddresses = new ArrayList<>();
-						
+
 					contact.emailAddresses.add((EmailAddress) obj);
 					break;
 				case "vnd.android.cursor.item/im":
 					obj = new IMAddress();
 					if (contact.imAddresses == null)
 						contact.imAddresses = new ArrayList<>();
-						
+
 					contact.imAddresses.add((IMAddress) obj);
 					break;
 				case "vnd.android.cursor.item/phone_v2":
 					if (contact.phoneNumbers == null)
 						contact.phoneNumbers = new ArrayList<>();
-						
+
 					obj = new PhoneNumber();
 					contact.phoneNumbers.add((PhoneNumber) obj);
 					break;
 				case "vnd.android.cursor.item/postal-address_v2":
 					if (contact.postalAddresses == null)
 						contact.postalAddresses = new ArrayList<>();
-						
+
 					obj = new PostalAddress();
 					contact.postalAddresses.add((PostalAddress) obj);
 					break;
 				case "vnd.android.cursor.item/website":
 					if (contact.websites == null)
 						contact.websites = new ArrayList<>();
-						
+
 					obj = new Website();
 					contact.websites.add((Website) obj);
 					break;
 				case "vnd.android.cursor.item/note":
 					if (contact.notes == null)
 						contact.notes = new ArrayList<>();
-						
+
 					obj = new Note();
 					contact.notes.add((Note) obj);
 					break;
@@ -149,13 +144,13 @@ public class AndroidContactListing implements IContactListing {
 					logger.error(String.format("%s is a not supported mimetype", mimeType));
 					continue;
 				}
-				
+
 				for (int i = 0; i < split.length; i++) {
 					String pair = split[i];
 					int idx = pair.indexOf('=');
 					String key = pair.substring(0, idx);
 					String value = pair.substring(idx + 1);
-					//Overhanging values:
+					// Overhanging values:
 					while (i + 1 < split.length && !split[i + 1].contains("=")) {
 						value += ", " + split[++i];
 					}
@@ -179,26 +174,30 @@ public class AndroidContactListing implements IContactListing {
 					maxContactId = c.id;
 			}
 			contact.id = maxContactId + 1;
-			bindings = " --bind contact_id:i:" + contact.id + " --bind raw_contact_id:i:" + contact.id ;
-			cmd = "content insert --uri content://com.android.contacts/raw_contacts --bind deleted:i:0 "  + new Name(contact).getBindings() + bindings;
+			bindings = " --bind contact_id:i:" + contact.id + " --bind raw_contact_id:i:" + contact.id;
+			cmd = "content insert --uri content://com.android.contacts/raw_contacts --bind deleted:i:0 "
+					+ new Name(contact).getBindings() + bindings;
 			device.executeThrowOutput(cmd);
 		} else {
 			bindings = " --bind contact_id:i:" + contact.id;
-			cmd = "content update --uri content://com.android.contacts/raw_contacts --bind raw_contact_id:i:" + contact.id  + new Name(contact).getBindings();
+			cmd = "content update --uri content://com.android.contacts/raw_contacts --bind raw_contact_id:i:"
+					+ contact.id + new Name(contact).getBindings();
 			device.executeThrowOutput(cmd);
 		}
 
 		if (contact.emailAddresses != null) {
 			for (EmailAddress o : contact.emailAddresses) {
-				device.executeThrowOutput("content insert --uri content://com.android.contacts/data " + o.getBindings() + bindings);
+				device.executeThrowOutput(
+						"content insert --uri content://com.android.contacts/data " + o.getBindings() + bindings);
 			}
 		}
 		if (contact.phoneNumbers != null) {
 			for (PhoneNumber o : contact.phoneNumbers) {
-				device.executeThrowOutput("content insert --uri content://com.android.contacts/data " + o.getBindings() + bindings);
+				device.executeThrowOutput(
+						"content insert --uri content://com.android.contacts/data " + o.getBindings() + bindings);
 			}
 		}
-		
+
 	}
 
 	@Override

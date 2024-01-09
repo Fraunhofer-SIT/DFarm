@@ -1,18 +1,16 @@
 package de.fraunhofer.sit.beast.api.data.contacts;
 
-
-import de.fraunhofer.sit.beast.api.data.exceptions.ExceptionProvider;
 import de.fraunhofer.sit.beast.internal.android.AndroidUtils;
 
 public class EmailAddress implements IDataItem {
 
 	public String address, displayName;
 	public EmailType type;
-	
+
 	public enum EmailType {
 		HOME, MOBILE, OTHER, WORK
 	}
-	
+
 	@Override
 	public void apply(String key, String value) {
 		switch (key) {
@@ -40,7 +38,7 @@ public class EmailAddress implements IDataItem {
 			break;
 		}
 	}
-	
+
 	@Override
 	public String getBindings() {
 		int otype = -1;
@@ -58,11 +56,12 @@ public class EmailAddress implements IDataItem {
 			case WORK:
 				otype = 4;
 				break;
-			
+
 			}
 		}
-		return AndroidUtils.getBinding("data1", address) + (otype != -1 ? "" : AndroidUtils.getBinding("data2", otype)) + AndroidUtils.getBinding("data4", displayName) +
-				 AndroidUtils.getBinding("mimetype", "vnd.android.cursor.item/email_v2");
+		return AndroidUtils.getBinding("data1", address) + (otype != -1 ? "" : AndroidUtils.getBinding("data2", otype))
+				+ AndroidUtils.getBinding("data4", displayName)
+				+ AndroidUtils.getBinding("mimetype", "vnd.android.cursor.item/email_v2");
 	}
 
 }

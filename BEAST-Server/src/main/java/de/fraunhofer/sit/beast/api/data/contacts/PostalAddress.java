@@ -1,6 +1,5 @@
 package de.fraunhofer.sit.beast.api.data.contacts;
 
-import de.fraunhofer.sit.beast.api.data.contacts.EmailAddress.EmailType;
 import de.fraunhofer.sit.beast.internal.android.AndroidUtils;
 
 public class PostalAddress implements IDataItem {
@@ -11,7 +10,7 @@ public class PostalAddress implements IDataItem {
 	public enum PostalType {
 		HOME, OTHER, WORK
 	}
-	
+
 	@Override
 	public void apply(String key, String value) {
 		switch (key) {
@@ -51,7 +50,6 @@ public class PostalAddress implements IDataItem {
 			break;
 		}
 	}
-	
 
 	@Override
 	public String getBindings() {
@@ -70,10 +68,11 @@ public class PostalAddress implements IDataItem {
 			}
 		}
 		return AndroidUtils.getBinding("data1", formatted_address) + AndroidUtils.getBinding("data4", street)
-		+ AndroidUtils.getBinding("data6", neighborHood) + AndroidUtils.getBinding("data7", city) +
-		AndroidUtils.getBinding("data8", region) + AndroidUtils.getBinding("data9", postalCode) + AndroidUtils.getBinding("data10", country) +
-		(postalType != -1 ? AndroidUtils.getBinding("data2", postalType) : "") + 
-		 AndroidUtils.getBinding("mimetype", "vnd.android.cursor.item/postal-address_v2");
+				+ AndroidUtils.getBinding("data6", neighborHood) + AndroidUtils.getBinding("data7", city)
+				+ AndroidUtils.getBinding("data8", region) + AndroidUtils.getBinding("data9", postalCode)
+				+ AndroidUtils.getBinding("data10", country)
+				+ (postalType != -1 ? AndroidUtils.getBinding("data2", postalType) : "")
+				+ AndroidUtils.getBinding("mimetype", "vnd.android.cursor.item/postal-address_v2");
 	}
 
 }

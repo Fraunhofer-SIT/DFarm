@@ -14,15 +14,12 @@ import org.apache.logging.log4j.Logger;
 import com.j256.ormlite.dao.CloseableIterator;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
-import com.j256.ormlite.field.DataType;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.stmt.DeleteBuilder;
 import com.j256.ormlite.stmt.QueryBuilder;
 import com.j256.ormlite.table.TableUtils;
 
-import de.fraunhofer.sit.beast.internal.android.AndroidApp;
 import de.fraunhofer.sit.beast.internal.android.AndroidDevice;
-import de.fraunhofer.sit.beast.internal.android.resetters.AndroidApplicationEnvironmentResetter.AndroidApplicationResetInformation;
 import de.fraunhofer.sit.beast.internal.interfaces.IDevice;
 import de.fraunhofer.sit.beast.internal.interfaces.IEnvironmentResetter;
 import de.fraunhofer.sit.beast.internal.interfaces.IFile;
@@ -32,35 +29,32 @@ import de.fraunhofer.sit.beast.internal.persistance.SavedEnvironment;
 
 /**
  * Prepares the Android device so that only a fixed set of files is available.
+ * 
  * @author Marc Miltenberger
  */
 public class AndroidFileSystemEnvironmentResetter implements IEnvironmentResetter {
 	private static final Logger LOGGER = LogManager.getLogger(AndroidFileSystemEnvironmentResetter.class);
 	static File BASE_FILE = new File("Environments/FS/");
-	
-	public static final String[] PATHES = new String[] { "/sdcard/" , "/sdcard0/"
-			, "/sdcard1/" , "/storage/sdcard/"
-			, "/storage/sdcard0/" , "/storage/sdcard1/"
-			, "/storage/emulated/0/"
-			, "/storage/emulated/obb/" , "/mnt/sdcard/"
-			, "/mnt/extSdCard/" , "/mnt/ext_sd/"
-			, "/mnt/external/" , "/media/sdcard/", "/data/local/tmp/"};
-	
+
+	public static final String[] PATHES = new String[] { "/sdcard/", "/sdcard0/", "/sdcard1/", "/storage/sdcard/",
+			"/storage/sdcard0/", "/storage/sdcard1/", "/storage/emulated/0/", "/storage/emulated/obb/", "/mnt/sdcard/",
+			"/mnt/extSdCard/", "/mnt/ext_sd/", "/mnt/external/", "/media/sdcard/", "/data/local/tmp/" };
+
 	public static class AndroidFSResetInformation {
-	
-		@DatabaseField(index=true, foreign=true)
+
+		@DatabaseField(index = true, foreign = true)
 		public SavedEnvironment env;
-	
+
 		@DatabaseField
 		public String path;
-	
+
 		@DatabaseField
 		public boolean isDirectory;
 
 		@DatabaseField
 		public int versionCode;
-		
-		@DatabaseField(index=true)
+
+		@DatabaseField(index = true)
 		public String hash;
 
 		@DatabaseField
@@ -71,16 +65,17 @@ public class AndroidFileSystemEnvironmentResetter implements IEnvironmentResette
 			return new File(BASE_FILE, size + "_" + hash);
 		}
 	}
+
 	private Dao<AndroidFSResetInformation, ?> daoResetInfo;
-	
+
 	public AndroidFileSystemEnvironmentResetter(Database db) throws SQLException {
-		daoResetInfo = DaoManager.createDao(db.getConnectionSource(), AndroidFSResetInformation.class);;
+		daoResetInfo = DaoManager.createDao(db.getConnectionSource(), AndroidFSResetInformation.class);
+		;
 		TableUtils.createTableIfNotExists(db.getConnectionSource(), AndroidFSResetInformation.class);
 	}
 
 	@Override
 	public void resetToKnownState(IDevice device, SavedEnvironment env) throws SQLException, FileNotFoundException {
-
 
 		if (device instanceof AndroidDevice) {
 			AndroidDevice dev = (AndroidDevice) device;
@@ -113,11 +108,12 @@ public class AndroidFileSystemEnvironmentResetter implements IEnvironmentResette
 			} finally {
 				it.closeQuietly();
 			}
-			
-		}		
+
+		}
 	}
 
-	private void restoreFirstStage(IFile file, Map<String, AndroidFSResetInformation> fileMap) throws FileNotFoundException {
+	private void restoreFirstStage(IFile file, Map<String, AndroidFSResetInformation> fileMap)
+			throws FileNotFoundException {
 		for (IFile d : file.listFiles()) {
 			AndroidFSResetInformation m = fileMap.remove(d.getFullPath());
 			if (m == null)
@@ -141,9 +137,9 @@ public class AndroidFileSystemEnvironmentResetter implements IEnvironmentResette
 					}
 					if (d.exists()) {
 						String md5sum = d.getMD5Sum();
-						if (d.getSize() != m.size || !m.hash.equals(md5sum))
-						{
-							LOGGER.info(String.format("Restoring %s: Restore %s (%s, %d) with (%s, %d)", m.env.name, m.path, md5sum, d.getSize(), m.hash, m.size));
+						if (d.getSize() != m.size || !m.hash.equals(md5sum)) {
+							LOGGER.info(String.format("Restoring %s: Restore %s (%s, %d) with (%s, %d)", m.env.name,
+									m.path, md5sum, d.getSize(), m.hash, m.size));
 							try {
 								d.upload(m.getFile());
 							} catch (Exception e) {
@@ -156,7 +152,7 @@ public class AndroidFileSystemEnvironmentResetter implements IEnvironmentResette
 			if (d.isDirectory())
 				restoreFirstStage(d, fileMap);
 		}
-		
+
 	}
 
 	@Override
@@ -205,6 +201,5 @@ public class AndroidFileSystemEnvironmentResetter implements IEnvironmentResette
 		db.where().eq("env_id", env.id);
 		db.delete();
 	}
-
 
 }

@@ -1,37 +1,9 @@
 package de.fraunhofer.sit.beast.api.operations;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.StreamingOutput;
-
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
-
-import de.fraunhofer.sit.beast.api.data.UploadedFile;
-import de.fraunhofer.sit.beast.api.data.devices.DeviceInformation;
-import de.fraunhofer.sit.beast.api.data.devices.DeviceRequirements;
-import de.fraunhofer.sit.beast.api.data.devices.DeviceState;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
-import de.fraunhofer.sit.beast.api.data.exceptions.AccessDeniedException;
-import de.fraunhofer.sit.beast.api.data.exceptions.DeviceReservationFailedException;
 import de.fraunhofer.sit.beast.internal.DeviceManager;
 import de.fraunhofer.sit.beast.internal.EnvironmentStateManager;
 import de.fraunhofer.sit.beast.internal.interfaces.AbstractApp;
@@ -46,20 +18,25 @@ import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import io.swagger.v3.oas.annotations.security.SecuritySchemes;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.tags.Tags;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 @Path("/api/devices/{devid}/environments/")
 @Produces(MediaType.APPLICATION_JSON)
 @SecuritySchemes(value = @SecurityScheme(type = SecuritySchemeType.APIKEY, description = "Your API key", in = SecuritySchemeIn.HEADER, name = "APIKey", paramName = "APIKey"))
 @Tags(@Tag(name = "Device Environments", description = "Device Environments"))
-public class DeviceEnvironments
-{
+public class DeviceEnvironments {
 	@Operation(method = "PUT", summary = "Saves the current state as the new saved state", description = "Saves the state")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AbstractApp.class))),
@@ -70,7 +47,7 @@ public class DeviceEnvironments
 	public void saveState(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@PathParam("saveName") @Parameter(name = "saveName", description = "The id of device", required = true, in = ParameterIn.PATH) String saveName ) {
+			@PathParam("saveName") @Parameter(name = "saveName", description = "The id of device", required = true, in = ParameterIn.PATH) String saveName) {
 		IDevice dev = DeviceManager.DEVICE_MANAGER.getDeviceByIdChecked(apiKey, devid);
 		try {
 			EnvironmentStateManager.saveEnvironmentState(dev, saveName);
@@ -81,7 +58,7 @@ public class DeviceEnvironments
 			throw new APIExceptionWrapper(new APIException(503, "Internal error"));
 		}
 	}
-	
+
 	@Operation(method = "DELETE", summary = "Deletes a state", description = "Deletes a state")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AbstractApp.class))),
@@ -92,14 +69,16 @@ public class DeviceEnvironments
 	public void deleteState(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@PathParam("saveName") @Parameter(name = "saveName", description = "The id of device", required = true, in = ParameterIn.PATH) String saveName ) {
+			@PathParam("saveName") @Parameter(name = "saveName", description = "The id of device", required = true, in = ParameterIn.PATH) String saveName) {
 		IDevice dev = DeviceManager.DEVICE_MANAGER.getDeviceById(devid);
 		try {
 			SavedEnvironment se = Database.INSTANCE.getSavedEnvironmentUnsafe(dev.getDeviceInfo().ID, saveName);
 			if (se == null)
-				throw new APIExceptionWrapper(new APIException(404, String.format("Environment %s not found for device %d", saveName, devid)));
+				throw new APIExceptionWrapper(new APIException(404,
+						String.format("Environment %s not found for device %d", saveName, devid)));
 			if (!se.user.equals(apiKey))
-				throw new APIExceptionWrapper(new APIException(403, String.format("Environment %s cannot be delete by a different user", saveName)));
+				throw new APIExceptionWrapper(new APIException(403,
+						String.format("Environment %s cannot be delete by a different user", saveName)));
 			EnvironmentStateManager.deleteEnvironmentState(dev, se);
 		} catch (APIExceptionWrapper w) {
 			throw w;
@@ -109,8 +88,7 @@ public class DeviceEnvironments
 		}
 
 	}
-	
-	
+
 	@Operation(method = "GET", summary = "Loads the saved state", description = "Loads the saved state")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = AbstractApp.class))),
@@ -121,7 +99,7 @@ public class DeviceEnvironments
 	public void loadState(
 			@org.jboss.resteasy.annotations.jaxrs.HeaderParam("APIKey") @Parameter(hidden = true) String apiKey,
 			@PathParam("devid") @Parameter(name = "devid", description = "The id of device", required = true, in = ParameterIn.PATH) int devid,
-			@PathParam("saveName") @Parameter(name = "saveName", description = "The id of device", required = true, in = ParameterIn.PATH) String saveName ) {
+			@PathParam("saveName") @Parameter(name = "saveName", description = "The id of device", required = true, in = ParameterIn.PATH) String saveName) {
 		IDevice dev = DeviceManager.DEVICE_MANAGER.getDeviceByIdChecked(apiKey, devid);
 		try {
 			EnvironmentStateManager.loadEnvironmentState(dev, saveName);
@@ -132,7 +110,6 @@ public class DeviceEnvironments
 			throw new APIExceptionWrapper(new APIException(503, "Internal error"));
 		}
 	}
-	
 
 	@Operation(method = "GET", summary = "Returns a list of saved states", description = "List of saved environment states")
 	@ApiResponses(value = {

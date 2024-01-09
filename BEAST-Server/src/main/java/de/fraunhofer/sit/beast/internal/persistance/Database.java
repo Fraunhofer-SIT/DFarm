@@ -1,6 +1,5 @@
 package de.fraunhofer.sit.beast.internal.persistance;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -13,20 +12,16 @@ import com.j256.ormlite.dao.CloseableIterator;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.db.DatabaseType;
-import com.j256.ormlite.jdbc.db.SqliteDatabaseType;
 import com.j256.ormlite.field.DataPersisterManager;
+import com.j256.ormlite.jdbc.db.SqliteDatabaseType;
 import com.j256.ormlite.table.TableUtils;
 
 import de.fraunhofer.sit.beast.api.data.android.AndroidDeviceInformation;
 import de.fraunhofer.sit.beast.api.data.devices.DeviceInformation;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
-import de.fraunhofer.sit.beast.applications.Main;
 import de.fraunhofer.sit.beast.internal.Config;
 import de.fraunhofer.sit.beast.internal.ConfigBase;
-import de.fraunhofer.sit.beast.internal.android.AndroidDevice;
-import soot.jimple.AndExpr;
-
 
 public class Database {
 	private static final Logger LOGGER = LogManager.getLogger(Database.class);
@@ -45,8 +40,7 @@ public class Database {
 	static {
 		DataPersisterManager.registerDataPersisters(new DeviceStatePersister());
 	}
-	
-	
+
 	private Database() throws Throwable {
 		final String username = ConfigBase.getString("Database.Username", false, "");
 		final String password = ConfigBase.getString("Database.Password", false, "");
@@ -62,26 +56,29 @@ public class Database {
 		createTables();
 
 		createDaos();
-		
-		
 
 	}
+
 	public List<SavedEnvironment> getSavedEnvironments(int deviceID) throws SQLException {
 		return daoSavedEnvironment.queryBuilder().where().eq("device", deviceID).query();
 	}
+
 	public SavedEnvironment getSavedEnvironmentUnsafe(int deviceID, String environment) throws SQLException {
-		List<SavedEnvironment> c = daoSavedEnvironment.queryBuilder().where().eq("device", deviceID).and().eq("name", environment).query();
+		List<SavedEnvironment> c = daoSavedEnvironment.queryBuilder().where().eq("device", deviceID).and()
+				.eq("name", environment).query();
 		if (c == null || c.isEmpty())
 			return null;
 		return c.get(0);
-		
+
 	}
+
 	public SavedEnvironment getSavedEnvironment(int deviceID, String environment) throws SQLException {
 		SavedEnvironment c = getSavedEnvironmentUnsafe(deviceID, environment);
 		if (c == null)
-			throw new APIExceptionWrapper(new APIException(404, String.format("Environment %s not found for device %d", environment, deviceID)));
+			throw new APIExceptionWrapper(new APIException(404,
+					String.format("Environment %s not found for device %d", environment, deviceID)));
 		return c;
-		
+
 	}
 
 	public void putSavedEnvironment(SavedEnvironment s) throws SQLException {
@@ -95,12 +92,12 @@ public class Database {
 	protected void createTables() throws SQLException {
 
 		TableUtils.createTableIfNotExists(connectionSource, Error.class);
-		daoError = DaoManager.createDao(connectionSource, Error.class);	
+		daoError = DaoManager.createDao(connectionSource, Error.class);
 		TableUtils.createTableIfNotExists(connectionSource, DBMetaInfo.class);
 		TableUtils.createTableIfNotExists(connectionSource, AndroidDeviceInformation.class);
 		TableUtils.createTableIfNotExists(connectionSource, SavedEnvironment.class);
 	}
-	
+
 	public synchronized int getNewId() throws SQLException {
 		metadata.lastID++;
 		if (metadata.lastID > Config.getDeviceEndRange())
@@ -114,7 +111,6 @@ public class Database {
 			daoDBMetaInfo.update(metadata);
 		}
 	}
-
 
 	protected void createDaos() throws SQLException {
 
@@ -150,20 +146,19 @@ public class Database {
 		if (daoDBMetaInfo == null)
 			daoDBMetaInfo = DaoManager.createDao(connectionSource, DBMetaInfo.class);
 		daoAndroidDeviceInformation = DaoManager.createDao(connectionSource, AndroidDeviceInformation.class);
-		daoSavedEnvironment = DaoManager.createDao(connectionSource, SavedEnvironment.class);	
+		daoSavedEnvironment = DaoManager.createDao(connectionSource, SavedEnvironment.class);
 	}
-	
+
 	public CIJdbcConnectionSource getConnectionSource() {
 		return connectionSource;
 	}
-	
+
 	public AndroidDeviceInformation getAndroidDeviceInfo(String serialNumber) throws SQLException {
 		List<AndroidDeviceInformation> l = daoAndroidDeviceInformation.queryForEq("serialNumber", serialNumber);
 		if (l == null || l.isEmpty())
 			return null;
 		return l.get(0);
 	}
-	
 
 	public static void logError(IDevice device, Throwable t) {
 		if (device == null) {
@@ -192,6 +187,7 @@ public class Database {
 		error.text = t.getMessage();
 		Database.INSTANCE.addException(error);
 	}
+
 	public static void logError(String text) {
 		LOGGER.error("An error occurred: " + text);
 		Error error = new Error();
@@ -201,21 +197,14 @@ public class Database {
 	}
 
 	public static void logError(de.fraunhofer.sit.beast.internal.interfaces.IDevice device, Throwable t) {
-		String text = String.format("An error with device %s was logged",
-				device.toString());
+		String text = String.format("An error with device %s was logged", device.toString());
 		LOGGER.error(text, t);
 		Error error = new Error();
 		error.stackTrace = ExceptionUtils.getStackTrace(t);
 		error.text = t.getMessage();
-		if (device == null) {
-			Database.INSTANCE.addException(error);
-			return;
-		}
 		error.deviceInformationID = device.getDeviceInfo().ID;
-		
 		Database.INSTANCE.addException(error);
 	}
-
 
 	private void addException(Error error) {
 		try {
@@ -230,7 +219,7 @@ public class Database {
 	}
 
 	public void insert(AndroidDeviceInformation s) throws SQLException {
-		synchronized (write ) {
+		synchronized (write) {
 			s.ID = getNewId();
 			daoAndroidDeviceInformation.create(s);
 		}
@@ -247,10 +236,7 @@ public class Database {
 			daoAndroidDeviceInformation.update((AndroidDeviceInformation) deviceInfo);
 		} else
 			throw new RuntimeException(String.format("Unsupported type: %s", deviceInfo.getClass().getName()));
-		
+
 	}
-	
-	
-	
 
 }

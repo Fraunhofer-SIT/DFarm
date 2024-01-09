@@ -1,13 +1,10 @@
 package de.fraunhofer.sit.beast.internal.interfaces;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
-
-import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
 
 public interface IFile {
 	public String getShortName();
@@ -20,15 +17,15 @@ public interface IFile {
 
 	public boolean exists();
 
-	public InputStream openRead() ;
+	public InputStream openRead();
 
-	public OutputStream openWrite() ;
+	public OutputStream openWrite();
 
-	public void deleteRecursively() ;
+	public void deleteRecursively();
 
-	public void mkdirs() ;
+	public void mkdirs();
 
-	public List<IFile> listFiles() ;
+	public List<IFile> listFiles();
 
 	public String[] getPathParts();
 

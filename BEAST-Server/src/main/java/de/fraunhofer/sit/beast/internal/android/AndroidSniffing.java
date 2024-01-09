@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 
@@ -12,13 +11,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
 import de.fraunhofer.sit.beast.internal.ConfigBase;
-import de.fraunhofer.sit.beast.internal.DeviceManager;
 import de.fraunhofer.sit.beast.internal.interfaces.IFile;
 import de.fraunhofer.sit.beast.internal.interfaces.IFileListing;
 import de.fraunhofer.sit.beast.internal.interfaces.ISniffing;
-import soot.jimple.infoflow.android.manifest.ProcessManifest;
 
 public class AndroidSniffing implements ISniffing {
 
@@ -29,24 +25,21 @@ public class AndroidSniffing implements ISniffing {
 		this.device = device;
 	}
 
-
 	@Override
 	public void startSniffing(int timeout) throws Exception {
 		IFileListing fl = this.device.getFileListing();
 		IFile certFile = fl.getFile(MessageFormat.format("/sdcard/ovpn/{0}.ovpn", this.device.getDeviceInfo().ID));
-		
-		
+
 		if (this.device.getInstalledAppUnsafe("de.blinkt.openvpn") != null)
-			//App is installed
+			// App is installed
 			return;
-		
+
 		installOvpn();
-		
-		
-		if(!certFile.exists()) {
+
+		if (!certFile.exists()) {
 			createCert();
 		}
-		
+
 		try {
 			this.device.executeOnDevice(
 					"am start-activity -a android.intent.action.MAIN -e de.blinkt.openvpn.api.profileName test1 de.blinkt.openvpn/.api.ConnectVPN");
@@ -67,7 +60,8 @@ public class AndroidSniffing implements ISniffing {
 		IFileListing fl = this.device.getFileListing();
 		IFile file = fl.getFile(MessageFormat.format("/sdcard/ovpn/{0}.ovpn", this.device.getDeviceInfo().ID));
 		try {
-			URL url = new URL(MessageFormat.format("http://{0}:{1}/createCert?={2}", masterServerIp, masterServerPort, this.device.getDeviceInfo().ID));	
+			URL url = new URL(MessageFormat.format("http://{0}:{1}/createCert?={2}", masterServerIp, masterServerPort,
+					this.device.getDeviceInfo().ID));
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			File tmpfile = File.createTempFile("tmp", ".cer");
 			try (FileOutputStream out = new FileOutputStream(tmpfile)) {
@@ -75,12 +69,11 @@ public class AndroidSniffing implements ISniffing {
 			}
 			file.upload(tmpfile);
 			// Upload tmpfile to device
-			
+
 		} catch (IOException e) {
 			logger.error("error while creating cert-file", e);
 		}
 
-		
 	}
 
 	// Stop tcpdump and the vpn-connection manually

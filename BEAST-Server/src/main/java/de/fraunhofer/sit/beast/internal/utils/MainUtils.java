@@ -1,16 +1,11 @@
 package de.fraunhofer.sit.beast.internal.utils;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
-import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
-
 public class MainUtils {
-    private static final Pattern EscapePattern = Pattern.compile(
-            "([\\\\()*+?\"'&#/\\s])");
-	public static final String DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss.SSSZ"; 
-    
+	private static final Pattern EscapePattern = Pattern.compile("([\\\\()*+?\"'&#/\\s])");
+	public static final String DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss.SSSZ";
+
 	public static int tryParseInt(String number) {
 		int parsed;
 		try {
@@ -22,7 +17,7 @@ public class MainUtils {
 	}
 
 	public static String escapePath(String path) {
-        return EscapePattern.matcher(path).replaceAll("\\\\$1"); 
+		return EscapePattern.matcher(path).replaceAll("\\\\$1");
 	}
 
 	public static String escapePath(String[] path) {
@@ -38,10 +33,10 @@ public class MainUtils {
 	public static String escapeCommand(String command) {
 		return command;
 	}
-	
-	
+
 	private static String publicHostname;
-	public static String getHostName(){
+
+	public static String getHostName() {
 		return publicHostname;
 	}
 

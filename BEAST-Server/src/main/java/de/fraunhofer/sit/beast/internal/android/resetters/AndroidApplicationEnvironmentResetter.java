@@ -1,7 +1,6 @@
 package de.fraunhofer.sit.beast.internal.android.resetters;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -20,28 +19,27 @@ import de.fraunhofer.sit.beast.internal.android.AndroidApp;
 import de.fraunhofer.sit.beast.internal.android.AndroidDevice;
 import de.fraunhofer.sit.beast.internal.interfaces.IDevice;
 import de.fraunhofer.sit.beast.internal.interfaces.IEnvironmentResetter;
-import de.fraunhofer.sit.beast.internal.persistance.DBMetaInfo;
 import de.fraunhofer.sit.beast.internal.persistance.Database;
-import de.fraunhofer.sit.beast.internal.persistance.Error;
 import de.fraunhofer.sit.beast.internal.persistance.SavedEnvironment;
-import de.fraunhofer.sit.beast.internal.utils.IOUtils;
 
 /**
- * Prepares the Android device so that only a fixed set of applications is installed.
+ * Prepares the Android device so that only a fixed set of applications is
+ * installed.
+ * 
  * @author Marc Miltenberger
  */
 public class AndroidApplicationEnvironmentResetter implements IEnvironmentResetter {
 	private static final Logger LOGGER = LogManager.getLogger(AndroidApplicationEnvironmentResetter.class);
 	static File BASE_FILE = new File("Environments/Apps/");
-	
+
 	public static class AndroidApplicationResetInformation {
-	
-		@DatabaseField(index=true, foreign=true)
+
+		@DatabaseField(index = true, foreign = true)
 		public SavedEnvironment env;
-	
+
 		@DatabaseField
 		public String packageName;
-		
+
 		@DatabaseField
 		public int versionCode;
 
@@ -54,16 +52,17 @@ public class AndroidApplicationEnvironmentResetter implements IEnvironmentResett
 			return packageName.equals(AndroidApp.COMPANION_APP_PACKAGE_NAME);
 		}
 	}
+
 	private Dao<AndroidApplicationResetInformation, ?> daoResetInfo;
-	
+
 	public AndroidApplicationEnvironmentResetter(Database db) throws SQLException {
-		daoResetInfo = DaoManager.createDao(db.getConnectionSource(), AndroidApplicationResetInformation.class);;
+		daoResetInfo = DaoManager.createDao(db.getConnectionSource(), AndroidApplicationResetInformation.class);
+		;
 		TableUtils.createTableIfNotExists(db.getConnectionSource(), AndroidApplicationResetInformation.class);
 	}
 
 	@Override
 	public void resetToKnownState(IDevice device, SavedEnvironment env) throws SQLException {
-
 
 		if (device instanceof AndroidDevice) {
 			AndroidDevice dev = (AndroidDevice) device;
@@ -82,18 +81,22 @@ public class AndroidApplicationEnvironmentResetter implements IEnvironmentResett
 							continue;
 						} else {
 							if (a.getAppFile().exists()) {
-								LOGGER.info(String.format("Restoring %s: Uninstalling %s, since the installed version %d is different from the environment %d", env.name, a.packageName, installedVersion.versionCode, a.versionCode));
+								LOGGER.info(String.format(
+										"Restoring %s: Uninstalling %s, since the installed version %d is different from the environment %d",
+										env.name, a.packageName, installedVersion.versionCode, a.versionCode));
 								dev.uninstall(a.packageName);
 								dev.install(a.getAppFile());
 							} else
-								LOGGER.info(String.format("Restoring %s: No app on disk found for %s", env.name, a.packageName));
+								LOGGER.info(String.format("Restoring %s: No app on disk found for %s", env.name,
+										a.packageName));
 						}
 					} else {
 						LOGGER.info(String.format("Restoring %s: Reinstalling %s", env.name, a.packageName));
 						if (a.getAppFile().exists())
 							dev.install(a.getAppFile());
 						else
-							LOGGER.info(String.format("Restoring %s: No app on disk found for %s", env.name, a.packageName));
+							LOGGER.info(String.format("Restoring %s: No app on disk found for %s", env.name,
+									a.packageName));
 					}
 				}
 				for (AndroidApp i : installed.values()) {
@@ -107,8 +110,8 @@ public class AndroidApplicationEnvironmentResetter implements IEnvironmentResett
 			} finally {
 				it.closeQuietly();
 			}
-			
-		}		
+
+		}
 	}
 
 	@Override
@@ -133,6 +136,5 @@ public class AndroidApplicationEnvironmentResetter implements IEnvironmentResett
 		db.where().eq("env_id", env.id);
 		db.delete();
 	}
-
 
 }

@@ -8,53 +8,44 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.Client;
 import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener;
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener;
+import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData.DebuggerStatus;
-import com.android.ddmlib.logcat.LogCatListener;
-import com.android.ddmlib.logcat.LogCatMessage;
-import com.android.ddmlib.logcat.LogCatReceiverTask;
 import com.android.ddmlib.DdmPreferences;
 import com.android.ddmlib.IDevice;
 
 import de.fraunhofer.sit.beast.api.data.android.AndroidDeviceInformation;
 import de.fraunhofer.sit.beast.api.data.devices.DeviceRequirements;
 import de.fraunhofer.sit.beast.api.data.devices.DeviceState;
-import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
 import de.fraunhofer.sit.beast.api.data.exceptions.APIExceptionWrapper;
 import de.fraunhofer.sit.beast.internal.ConfigBase;
 import de.fraunhofer.sit.beast.internal.DeviceManager;
 import de.fraunhofer.sit.beast.internal.EnvironmentStateManager;
-import de.fraunhofer.sit.beast.internal.LogBuffer;
 import de.fraunhofer.sit.beast.internal.exceptions.NoStacktraceException;
 import de.fraunhofer.sit.beast.internal.interfaces.IDeviceManager;
 import de.fraunhofer.sit.beast.internal.persistance.Database;
 import de.fraunhofer.sit.beast.internal.persistance.SavedEnvironment;
-import de.fraunhofer.sit.beast.internal.utils.MainUtils;
 
 public class AndroidDeviceManager implements IDeviceManager {
 
 	private static final Logger LOGGER = LogManager.getLogger(AndroidDeviceManager.class);
 
-	private static final Map<Integer, AndroidDevice> cachedConnectedDeviceList  = new HashMap<Integer, AndroidDevice>();
+	private static final Map<Integer, AndroidDevice> cachedConnectedDeviceList = new HashMap<Integer, AndroidDevice>();
 
 	public static final AndroidDeviceManager MANAGER = new AndroidDeviceManager();
-	
-	
 
 	private File adbLocation;
 
 	private AndroidDeviceManager() {
 		install();
 	}
-	
+
 	public File getADBLocation() {
 		return adbLocation;
 	}
@@ -80,20 +71,21 @@ public class AndroidDeviceManager implements IDeviceManager {
 		});
 
 		AndroidDebugBridge.init(true);
-		
+
 		AndroidDebugBridge.addClientChangeListener(new IClientChangeListener() {
-			
+
 			@Override
 			public void clientChanged(Client client, int changeMask) {
 				int port = client.getDebuggerListenPort();
 				String packageName = client.getClientData().getClientDescription();
 				if (packageName != null) {
-					if (client.getClientData().getDebuggerConnectionStatus() == DebuggerStatus.WAITING) {	
+					if (client.getClientData().getDebuggerConnectionStatus() == DebuggerStatus.WAITING) {
 						LOGGER.info(String.format("found debug port %d for process %s", port, packageName));
 						setDeviceDebugPortForProcess(client.getDevice(), packageName, port);
-						
+
 					} else if (client.getClientData().getDebuggerConnectionStatus() == DebuggerStatus.ATTACHED) {
-						LOGGER.info(String.format("debugger attached to process %s. removing port from listing", packageName));
+						LOGGER.info(String.format("debugger attached to process %s. removing port from listing",
+								packageName));
 						clearDeviceDebugPortForProcess(client.getDevice(), packageName);
 					}
 				}
@@ -113,8 +105,7 @@ public class AndroidDeviceManager implements IDeviceManager {
 		for (IDevice d : bridge.getDevices()) {
 			connectDevice(d);
 		}
-		
-		
+
 	}
 
 	protected AndroidDeviceInformation getInformation(IDevice device) throws SQLException {
@@ -127,44 +118,44 @@ public class AndroidDeviceManager implements IDeviceManager {
 		if (s == null) {
 			s = new AndroidDeviceInformation(device);
 			Database.INSTANCE.insert(s);
-		} else
-		{
+		} else {
 			s.changeDevice(device);
 		}
-		s.refreshStart(); 
-		
-		AndroidDevice dev = new AndroidDevice(device, s);
-		SavedEnvironment db = Database.INSTANCE.getSavedEnvironmentUnsafe(s.ID, EnvironmentStateManager.DEFAULT_ENVIRONMENT);
-		if (db == null)
-		{
-			//EnvironmentStateManager.saveEnvironmentState(dev, EnvironmentStateManager.DEFAULT_ENVIRONMENT);
+		s.refreshStart();
+
+		SavedEnvironment db = Database.INSTANCE.getSavedEnvironmentUnsafe(s.ID,
+				EnvironmentStateManager.DEFAULT_ENVIRONMENT);
+		if (db == null) {
+			// EnvironmentStateManager.saveEnvironmentState(dev,
+			// EnvironmentStateManager.DEFAULT_ENVIRONMENT);
 		} else {
-			
-		//	EnvironmentStateManager.loadEnvironmentState(dev, EnvironmentStateManager.DEFAULT_ENVIRONMENT);
+
+			// EnvironmentStateManager.loadEnvironmentState(dev,
+			// EnvironmentStateManager.DEFAULT_ENVIRONMENT);
 		}
 		return s;
 	}
-	
+
 	private void setDeviceDebugPortForProcess(IDevice device, String processname, int port) {
 		synchronized (cachedConnectedDeviceList) {
 			Iterator<AndroidDevice> it = cachedConnectedDeviceList.values().iterator();
 			while (it.hasNext()) {
 				AndroidDevice dev = it.next();
 				if (dev.getAndroidDevice().equals(device)) {
-					((AndroidDeviceInformation)dev.getDeviceInfo()).debugPorts.put(processname, port);
+					((AndroidDeviceInformation) dev.getDeviceInfo()).debugPorts.put(processname, port);
 					break;
 				}
 			}
 		}
 	}
-	
+
 	private void clearDeviceDebugPortForProcess(IDevice device, String processname) {
 		synchronized (cachedConnectedDeviceList) {
 			Iterator<AndroidDevice> it = cachedConnectedDeviceList.values().iterator();
 			while (it.hasNext()) {
 				AndroidDevice dev = it.next();
 				if (dev.getAndroidDevice().equals(device)) {
-					((AndroidDeviceInformation)dev.getDeviceInfo()).debugPorts.remove(processname);
+					((AndroidDeviceInformation) dev.getDeviceInfo()).debugPorts.remove(processname);
 					break;
 				}
 			}
@@ -175,13 +166,13 @@ public class AndroidDeviceManager implements IDeviceManager {
 	public Collection<? extends AndroidDevice> getDevices(DeviceRequirements reqFilter) {
 		synchronized (cachedConnectedDeviceList) {
 			if (reqFilter == null)
-				//Clone to prevent CMEs
+				// Clone to prevent CMEs
 				return new ArrayList<AndroidDevice>(cachedConnectedDeviceList.values());
 			else {
 				List<AndroidDevice> res = new ArrayList<>();
 				for (AndroidDevice device : cachedConnectedDeviceList.values()) {
 					try {
-						
+
 						if (device.matchesDeviceRequirements(reqFilter))
 							res.add(device);
 					} catch (APIExceptionWrapper e) {
@@ -232,14 +223,13 @@ public class AndroidDeviceManager implements IDeviceManager {
 		try {
 			AndroidDeviceInformation info = getInformation(device);
 			if (info.name.toLowerCase().startsWith("tp") || (info.model != null && info.model.startsWith("tp_link")))
-				//tp link is too old!
+				// tp link is too old!
 				return;
 			AndroidDevice dev = new AndroidDevice(device, info);
 
-			if (info.state == DeviceState.PREPARING)
-			{
+			if (info.state == DeviceState.PREPARING) {
 				LOGGER.info(String.format("Redo preparing for: %s", device.getName()));
-				//restart prepare
+				// restart prepare
 				DeviceManager.prepareAsync(dev);
 			}
 			synchronized (cachedConnectedDeviceList) {
@@ -249,6 +239,5 @@ public class AndroidDeviceManager implements IDeviceManager {
 			Database.logError(device, e);
 		}
 	}
-	
 
 }

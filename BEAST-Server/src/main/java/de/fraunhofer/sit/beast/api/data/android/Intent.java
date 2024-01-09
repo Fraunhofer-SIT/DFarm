@@ -1,6 +1,5 @@
 package de.fraunhofer.sit.beast.api.data.android;
 
-import java.net.URI;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -11,25 +10,25 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(description = "An Android Intent")
 @JsonIgnoreProperties({ "commandSyntax" })
 public class Intent {
-	@Schema(required = true, description = "The action", example="android.intent.action.MAIN")
+	@Schema(required = true, description = "The action", example = "android.intent.action.MAIN")
 	public String action;
 
-	@Schema(required = false, description = "The category", example="android.intent.category.LAUNCHER")
+	@Schema(required = false, description = "The category", example = "android.intent.category.LAUNCHER")
 	public String category;
 
 	@Schema(required = false, description = "The extras")
 	public Map<String, String> extras;
 
-	@Schema(required = false, description = "The component", example="")
+	@Schema(required = false, description = "The component", example = "")
 	public String component;
 
-	@Schema(required = false, description = "The data uri", example="")
+	@Schema(required = false, description = "The data uri", example = "")
 	public String dataURI;
 
-	@Schema(required = false, description = "The mime type", example="")
+	@Schema(required = false, description = "The mime type", example = "")
 	public String mimeType;
-		
-	@Schema(required = false, description = "Flags", example="0")
+
+	@Schema(required = false, description = "Flags", example = "0")
 	public int flags;
 
 	public String getCommandSyntax() {
@@ -47,6 +46,6 @@ public class Intent {
 			builder.append(String.format("-t \"%s\" ", MainUtils.escapeCommand(mimeType)));
 		builder.append(String.format("-f %d ", flags));
 		return builder.toString();
-		
+
 	}
 }

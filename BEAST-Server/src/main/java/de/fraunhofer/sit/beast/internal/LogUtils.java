@@ -5,9 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.sql.Date;
-import java.text.SimpleDateFormat;
-import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;

@@ -1,20 +1,14 @@
 package de.fraunhofer.sit.beast.internal.interfaces;
 
 import java.io.File;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
 
 import de.fraunhofer.sit.beast.api.data.Key;
 import de.fraunhofer.sit.beast.api.data.devices.DeviceInformation;
 import de.fraunhofer.sit.beast.api.data.devices.DeviceRequirements;
 import de.fraunhofer.sit.beast.api.data.devices.DeviceState;
-import de.fraunhofer.sit.beast.api.data.exceptions.APIException;
-import de.fraunhofer.sit.beast.api.data.exceptions.AlreadyInstalledException;
-import de.fraunhofer.sit.beast.api.data.exceptions.AppNotInstalledException;
 import de.fraunhofer.sit.beast.internal.LogBuffer;
 
 public interface IDevice {
@@ -61,6 +55,5 @@ public interface IDevice {
 	public ISniffing startSniffing();
 
 	public LogBuffer getDeviceLog(String process);
-	
 
 }
